@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#F2F2F7">
+  <title>Vibe Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ios: {
+              bg: '#F2F2F7',
+              blue: '#007AFF',
+              green: '#34C759',
+              red: '#FF3B30',
+              orange: '#FF9500',
+              gray: '#8E8E93',
+              separator: '#C6C6C8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', sans-serif;
+      background: #F2F2F7;
+      overscroll-behavior: none;
+    }
+    .safe-top { padding-top: env(safe-area-inset-top, 0px); }
+    .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .macro-bar { transition: width 0.4s ease; }
+    input, select, textarea { font-size: 16px !important; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .sync-spin { animation: spin 0.8s linear infinite; }
+    @keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    .pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+    #carrierBarcode svg { max-width: 100%; height: auto; }
+    #qrScannerVideo { object-fit: cover; transform: scaleX(-1); }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+<body class="bg-ios-bg text-gray-900 min-h-screen">
+
+  <!-- Header -->
+  <header class="safe-top sticky top-0 z-40 bg-ios-bg/90 backdrop-blur-xl border-b border-gray-200/60">
+    <div class="flex items-center justify-between px-4 py-3">
+      <div>
+        <h1 id="pageTitle" class="text-xl font-bold tracking-tight">記帳</h1>
+        <p id="syncStatus" class="text-xs text-ios-gray mt-0.5">尚未設定 GitHub</p>
+      </div>
+      <button id="btnSettings" class="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-sm active:scale-95 transition-transform">
+        <svg class="w-5 h-5 text-ios-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="px-4 pb-28 pt-2 max-w-lg mx-auto">
+
+    <!-- ===== FINANCE TAB ===== -->
+    <section id="tabFinance" class="tab-panel space-y-4">
+
+      <!-- Month Switcher -->
+      <div class="flex items-center justify-between bg-white rounded-2xl shadow-sm px-4 py-3">
+        <button id="btnPrevMonth" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
+          <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <span id="currentMonthLabel" class="text-base font-semibold"></span>
+        <button id="btnNextMonth" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
+          <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+      <!-- Dashboard -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="bg-white rounded-2xl shadow-sm p-4 text-center">
+          <p class="text-xs text-ios-gray mb-1">收入</p>
+          <p id="totalIncome" class="text-lg font-bold text-ios-green">$0</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-4 text-center">
+          <p class="text-xs text-ios-gray mb-1">支出</p>
+          <p id="totalExpense" class="text-lg font-bold text-ios-red">$0</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-4 text-center">
+          <p class="text-xs text-ios-gray mb-1">盈餘</p>
+          <p id="totalSurplus" class="text-lg font-bold text-ios-blue">$0</p>
+        </div>
+      </div>
+
+      <!-- Subscription Reminders -->
+      <div id="subAlertBanner" class="hidden bg-orange-50 border border-orange-200 rounded-2xl p-4">
+        <div class="flex items-start gap-2">
+          <span class="text-lg">⏰</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-orange-600">訂閱即將扣款</p>
+            <div id="subAlertList" class="mt-1 space-y-1"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Carrier Card -->
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-base font-bold">電子發票載具</h2>
+          <button id="btnEditCarrier" class="text-xs text-ios-blue font-semibold active:scale-95 transition-transform">設定</button>
+        </div>
+        <div id="carrierEmpty" class="text-center py-4">
+          <p class="text-sm text-ios-gray mb-3">尚未設定手機條碼載具</p>
+          <button id="btnSetupCarrier" class="text-sm text-ios-blue font-semibold active:scale-95 transition-transform">＋ 新增載具</button>
+        </div>
+        <div id="carrierDisplay" class="hidden">
+          <div class="bg-ios-bg rounded-2xl p-4 flex flex-col items-center">
+            <svg id="carrierBarcode"></svg>
+            <p id="carrierCodeText" class="text-sm font-mono font-bold mt-2 tracking-wider"></p>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <button id="btnCopyCarrier" class="flex-1 bg-ios-bg text-ios-blue text-sm font-semibold py-2.5 rounded-xl active:scale-95 transition-transform">複製條碼</button>
+            <button id="btnScanInvoice" class="flex-1 bg-ios-blue text-white text-sm font-semibold py-2.5 rounded-xl active:scale-95 transition-transform">掃描發票</button>
+          </div>
+          <p id="carrierStats" class="text-xs text-ios-gray text-center mt-2"></p>
+        </div>
+      </div>
+
+      <!-- Subscriptions -->
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-base font-bold">每月訂閱</h2>
+            <p id="subMonthlyTotal" class="text-xs text-ios-gray mt-0.5">月固定支出 —</p>
+          </div>
+          <button id="btnAddSubscription" class="w-8 h-8 flex items-center justify-center rounded-full bg-ios-blue text-white active:scale-95 transition-transform">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          </button>
+        </div>
+        <div class="flex items-center justify-between bg-ios-bg rounded-xl px-3 py-2.5 mb-3">
+          <span class="text-xs text-ios-gray">扣款提醒通知</span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input id="subNotifyToggle" type="checkbox" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:bg-ios-green transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+          </label>
+        </div>
+        <div id="subscriptionList" class="space-y-2"></div>
+        <p id="subscriptionEmpty" class="text-center text-ios-gray text-sm py-4 hidden">尚無訂閱項目</p>
+      </div>
+
+      <!-- Add Buttons -->
+      <div class="flex gap-3">
+        <button id="btnAddIncome" class="flex-1 bg-ios-green text-white font-semibold py-3 rounded-2xl shadow-sm active:scale-95 transition-transform">＋ 收入</button>
+        <button id="btnAddExpense" class="flex-1 bg-ios-red text-white font-semibold py-3 rounded-2xl shadow-sm active:scale-95 transition-transform">＋ 支出</button>
+      </div>
+
+      <!-- Records List -->
+      <div id="financeList" class="space-y-2"></div>
+      <p id="financeEmpty" class="text-center text-ios-gray text-sm py-8 hidden">本月尚無紀錄</p>
+    </section>
+
+    <!-- ===== DIET TAB ===== -->
+    <section id="tabDiet" class="tab-panel hidden space-y-4">
+
+      <!-- BMR / TDEE Calculator -->
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <h2 class="text-base font-bold mb-4">BMR / TDEE 計算機</h2>
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label class="text-xs text-ios-gray">性別</label>
+            <select id="calcGender" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+              <option value="male">男性</option>
+              <option value="female">女性</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-ios-gray">年齡</label>
+            <input id="calcAge" type="number" inputmode="numeric" placeholder="25" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+          <div>
+            <label class="text-xs text-ios-gray">身高 (cm)</label>
+            <input id="calcHeight" type="number" inputmode="decimal" placeholder="170" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+          <div>
+            <label class="text-xs text-ios-gray">體重 (kg)</label>
+            <input id="calcWeight" type="number" inputmode="decimal" placeholder="70" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="text-xs text-ios-gray">活動量</label>
+          <select id="calcActivity" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+            <option value="1.2">久坐（幾乎不運動）</option>
+            <option value="1.375">輕度（每週 1-3 天）</option>
+            <option value="1.55">中度（每週 3-5 天）</option>
+            <option value="1.725">高度（每週 6-7 天）</option>
+            <option value="1.9">極高（體力勞動/運動員）</option>
+          </select>
+        </div>
+        <button id="btnCalculate" class="w-full bg-ios-blue text-white font-semibold py-3 rounded-2xl active:scale-95 transition-transform">計算並儲存</button>
+        <div id="calcResult" class="mt-4 grid grid-cols-2 gap-3 hidden">
+          <div class="bg-ios-bg rounded-2xl p-3 text-center">
+            <p class="text-xs text-ios-gray">BMR</p>
+            <p id="resultBMR" class="text-lg font-bold text-ios-orange">—</p>
+            <p class="text-xs text-ios-gray">kcal/天</p>
+          </div>
+          <div class="bg-ios-bg rounded-2xl p-3 text-center">
+            <p class="text-xs text-ios-gray">TDEE</p>
+            <p id="resultTDEE" class="text-lg font-bold text-ios-blue">—</p>
+            <p class="text-xs text-ios-gray">kcal/天</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Target Settings -->
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <h2 class="text-base font-bold mb-1">【目標設定】</h2>
+        <p class="text-xs text-ios-gray mb-4">依 TDEE 推算每日所需總熱量與營養素比例</p>
+
+        <!-- Bulk -->
+        <div class="mb-5">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-semibold text-ios-green">增肌</span>
+            <span id="bulkCalories" class="text-sm font-bold text-ios-red">— kcal</span>
+          </div>
+          <div class="space-y-2">
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-blue-500">碳水</span><span id="bulkCarbsG" class="text-ios-gray">— g</span></div>
+              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="bulkCarbsBar" class="macro-bar h-full bg-blue-500 rounded-full" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-green-500">蛋白質</span><span id="bulkProteinG" class="text-ios-gray">— g</span></div>
+              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="bulkProteinBar" class="macro-bar h-full bg-green-500 rounded-full" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-yellow-500">脂肪</span><span id="bulkFatG" class="text-ios-gray">— g</span></div>
+              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="bulkFatBar" class="macro-bar h-full bg-yellow-400 rounded-full" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cut -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-semibold text-ios-red">減脂</span>
+            <span id="cutCalories" class="text-sm font-bold text-ios-red">— kcal</span>
+          </div>
+          <div class="space-y-2">
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-blue-500">碳水</span><span id="cutCarbsG" class="text-ios-gray">— g</span></div>
+              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="cutCarbsBar" class="macro-bar h-full bg-blue-500 rounded-full" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-green-500">蛋白質</span><span id="cutProteinG" class="text-ios-gray">— g</span></div>
+              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="cutProteinBar" class="macro-bar h-full bg-green-500 rounded-full" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-yellow-500">脂肪</span><span id="cutFatG" class="text-ios-gray">— g</span></div>
+              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="cutFatBar" class="macro-bar h-full bg-yellow-400 rounded-full" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today Actual -->
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <h2 class="text-base font-bold mb-1">【今日實際攝取】</h2>
+        <p id="todayDateLabel" class="text-xs text-ios-gray mb-4"></p>
+
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div class="bg-ios-bg rounded-2xl p-3 text-center">
+            <p class="text-xs text-ios-gray">已攝取熱量</p>
+            <p id="todayCalories" class="text-2xl font-bold text-ios-red">0</p>
+            <p class="text-xs text-ios-gray">kcal</p>
+          </div>
+          <div class="bg-ios-bg rounded-2xl p-3 text-center">
+            <p class="text-xs text-ios-gray">三大營養素</p>
+            <p class="text-xs mt-1"><span class="text-blue-500 font-bold">碳</span> <span id="todayCarbs">0</span>g · <span class="text-green-500 font-bold">蛋</span> <span id="todayProtein">0</span>g · <span class="text-yellow-500 font-bold">脂</span> <span id="todayFat">0</span>g</p>
+          </div>
+        </div>
+
+        <!-- Comparison bars -->
+        <div class="space-y-3 mb-4">
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-ios-gray">對比增肌目標</span>
+              <span id="remainBulk" class="font-semibold text-ios-green">—</span>
+            </div>
+            <div class="h-4 bg-ios-bg rounded-full overflow-hidden">
+              <div id="todayBulkBar" class="macro-bar h-full bg-gradient-to-r from-ios-green to-green-400 rounded-full" style="width:0%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-ios-gray">對比減脂目標</span>
+              <span id="remainCut" class="font-semibold text-ios-red">—</span>
+            </div>
+            <div class="h-4 bg-ios-bg rounded-full overflow-hidden">
+              <div id="todayCutBar" class="macro-bar h-full bg-gradient-to-r from-ios-red to-red-400 rounded-full" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today macro bars -->
+        <div class="space-y-2">
+          <div>
+            <div class="flex justify-between text-xs mb-1"><span class="font-medium text-blue-500">碳水</span><span id="todayCarbsPct" class="text-ios-gray">0%</span></div>
+            <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="todayCarbsBar" class="macro-bar h-full bg-blue-500 rounded-full" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1"><span class="font-medium text-green-500">蛋白質</span><span id="todayProteinPct" class="text-ios-gray">0%</span></div>
+            <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="todayProteinBar" class="macro-bar h-full bg-green-500 rounded-full" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1"><span class="font-medium text-yellow-500">脂肪</span><span id="todayFatPct" class="text-ios-gray">0%</span></div>
+            <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="todayFatBar" class="macro-bar h-full bg-yellow-400 rounded-full" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Camera & Add Food -->
+      <div class="flex gap-3">
+        <label class="flex-1 flex items-center justify-center gap-2 bg-ios-blue text-white font-semibold py-3 rounded-2xl shadow-sm active:scale-95 transition-transform cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          拍照紀錄飲食
+          <input id="cameraInput" type="file" accept="image/*" capture="environment" class="hidden">
+        </label>
+        <button id="btnAddFoodManual" class="flex-1 bg-white text-ios-blue font-semibold py-3 rounded-2xl shadow-sm border border-ios-blue/20 active:scale-95 transition-transform">手動新增</button>
+      </div>
+
+      <!-- Diet Records -->
+      <div id="dietList" class="space-y-2"></div>
+      <p id="dietEmpty" class="text-center text-ios-gray text-sm py-8 hidden">今日尚無飲食紀錄</p>
+    </section>
+  </main>
+
+  <!-- Bottom Tab Bar -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-gray-200/60 safe-bottom">
+    <div class="flex max-w-lg mx-auto">
+      <button data-tab="finance" class="tab-btn flex-1 flex flex-col items-center py-2 pt-2.5 text-ios-blue active:scale-95 transition-transform">
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/></svg>
+        <span class="text-[10px] font-medium mt-0.5">記帳</span>
+      </button>
+      <button data-tab="diet" class="tab-btn flex-1 flex flex-col items-center py-2 pt-2.5 text-ios-gray active:scale-95 transition-transform">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        <span class="text-[10px] font-medium mt-0.5">飲控</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Settings Modal -->
+  <div id="modalSettings" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalSettings"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom max-h-[85vh] overflow-y-auto">
+      <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
+      <h2 class="text-lg font-bold mb-4">GitHub 雲端同步設定</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs text-ios-gray">GitHub 帳號 (Username)</label>
+          <input id="settingUsername" type="text" autocomplete="off" placeholder="your-username" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">倉庫名稱 (Repository)</label>
+          <input id="settingRepo" type="text" autocomplete="off" placeholder="my-private-repo" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">Personal Access Token (PAT)</label>
+          <input id="settingToken" type="password" autocomplete="off" placeholder="ghp_xxxxxxxxxxxx" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          <p class="text-[11px] text-ios-gray mt-1">需要 repo 權限，資料儲存於 vibe_tracker_db.json</p>
+        </div>
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button id="btnSaveSettings" class="flex-1 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存並同步</button>
+        <button data-close="modalSettings" class="px-6 bg-ios-bg text-ios-gray font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Finance Entry Modal -->
+  <div id="modalFinance" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalFinance"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom">
+      <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
+      <h2 id="financeModalTitle" class="text-lg font-bold mb-4">新增紀錄</h2>
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-ios-gray">金額</label>
+          <input id="finAmount" type="number" inputmode="decimal" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">分類</label>
+          <select id="finCategory" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+            <option value="食">食</option>
+            <option value="衣">衣</option>
+            <option value="住">住</option>
+            <option value="行">行</option>
+            <option value="育">育</option>
+            <option value="樂">樂</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">日期</label>
+          <input id="finDate" type="date" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">備忘錄</label>
+          <input id="finMemo" type="text" placeholder="選填" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <label id="finCarrierWrap" class="flex items-center justify-between bg-ios-bg rounded-xl px-4 py-3 cursor-pointer hidden">
+          <div>
+            <span class="text-sm font-medium">載具發票紀錄</span>
+            <p class="text-[11px] text-ios-gray">標記此筆為載具存入</p>
+          </div>
+          <input id="finCarrierUsed" type="checkbox" class="w-5 h-5 rounded accent-ios-blue">
+        </label>
+        <input id="finInvoiceNumber" type="hidden">
+      </div>
+      <button id="btnSaveFinance" class="w-full mt-5 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存</button>
+    </div>
+  </div>
+
+  <!-- Carrier Modal -->
+  <div id="modalCarrier" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalCarrier"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom">
+      <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
+      <h2 class="text-lg font-bold mb-1">手機條碼載具</h2>
+      <p class="text-xs text-ios-gray mb-4">格式：/ 開頭 + 7 碼英數（例：/ABC1234）</p>
+      <input id="carrierInput" type="text" autocomplete="off" placeholder="/XXXXXXX" class="w-full bg-ios-bg rounded-xl px-4 py-3 font-mono text-center text-lg tracking-widest border-0 outline-none focus:ring-2 focus:ring-ios-blue/30 uppercase">
+      <button id="btnSaveCarrier" class="w-full mt-5 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存載具</button>
+    </div>
+  </div>
+
+  <!-- Subscription Modal -->
+  <div id="modalSubscription" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalSubscription"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom max-h-[85vh] overflow-y-auto">
+      <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
+      <h2 id="subModalTitle" class="text-lg font-bold mb-4">新增訂閱</h2>
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-ios-gray">訂閱名稱</label>
+          <input id="subName" type="text" placeholder="Netflix、iCloud…" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-ios-gray">月費金額</label>
+            <input id="subAmount" type="number" inputmode="decimal" placeholder="390" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+          <div>
+            <label class="text-xs text-ios-gray">每月扣款日</label>
+            <input id="subBillingDay" type="number" inputmode="numeric" min="1" max="31" placeholder="15" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">分類</label>
+          <select id="subCategory" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+            <option value="食">食</option>
+            <option value="衣">衣</option>
+            <option value="住">住</option>
+            <option value="行">行</option>
+            <option value="育">育</option>
+            <option value="樂">樂</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">提前提醒（天）</label>
+          <select id="subRemindDays" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+            <option value="1">1 天前</option>
+            <option value="3" selected>3 天前</option>
+            <option value="5">5 天前</option>
+            <option value="7">7 天前</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">備註</label>
+          <input id="subMemo" type="text" placeholder="選填" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+      </div>
+      <button id="btnSaveSubscription" class="w-full mt-5 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存</button>
+    </div>
+  </div>
+
+  <!-- QR Scanner Modal -->
+  <div id="modalScanner" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black" data-close="modalScanner"></div>
+    <div class="absolute inset-0 flex flex-col safe-top safe-bottom">
+      <div class="flex items-center justify-between px-4 py-3">
+        <button data-close="modalScanner" class="text-white text-sm font-semibold active:scale-95 transition-transform">取消</button>
+        <span class="text-white text-sm font-semibold">掃描電子發票 QR</span>
+        <div class="w-10"></div>
+      </div>
+      <div class="flex-1 relative mx-4 mb-4 rounded-3xl overflow-hidden">
+        <video id="qrScannerVideo" class="w-full h-full" playsinline muted></video>
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div class="w-56 h-56 border-2 border-white/60 rounded-2xl"></div>
+        </div>
+      </div>
+      <p class="text-white/70 text-xs text-center px-6 pb-4">對準發票左側 QR Code，將自動帶入記帳</p>
+      <label class="mx-4 mb-6 text-center text-white/80 text-sm underline cursor-pointer active:scale-95 transition-transform">
+        或從相機拍照選取
+        <input id="qrFileInput" type="file" accept="image/*" capture="environment" class="hidden">
+      </label>
+    </div>
+  </div>
+
+  <!-- Diet Entry Modal -->
+  <div id="modalDiet" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalDiet"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom max-h-[90vh] overflow-y-auto">
+      <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
+      <h2 class="text-lg font-bold mb-4">新增飲食紀錄</h2>
+      <div id="dietPreviewWrap" class="hidden mb-4">
+        <img id="dietPreview" class="w-full h-40 object-cover rounded-2xl" alt="預覽">
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-ios-gray">名稱</label>
+          <input id="dietName" type="text" placeholder="例如：雞胸沙拉" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-ios-gray">熱量 (kcal)</label>
+            <input id="dietCalories" type="number" inputmode="numeric" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+          <div>
+            <label class="text-xs text-ios-gray">碳水 (g)</label>
+            <input id="dietCarbs" type="number" inputmode="decimal" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+          <div>
+            <label class="text-xs text-ios-gray">蛋白質 (g)</label>
+            <input id="dietProtein" type="number" inputmode="decimal" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+          <div>
+            <label class="text-xs text-ios-gray">脂肪 (g)</label>
+            <input id="dietFat" type="number" inputmode="decimal" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+        </div>
+      </div>
+      <button id="btnSaveDiet" class="w-full mt-5 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-[60] hidden">
+    <div id="toastInner" class="bg-gray-900/90 text-white text-sm px-5 py-2.5 rounded-full shadow-lg backdrop-blur"></div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    const DB_PATH = 'vibe_tracker_db.json';
+    const SETTINGS_KEY = 'vibe_tracker_settings';
+    const CATEGORIES = ['食', '衣', '住', '行', '育', '樂', '其他'];
+    const MACRO_RATIOS = {
+      bulk: { carbs: 5, protein: 2, fat: 3 },
+      cut: { carbs: 3, protein: 4, fat: 3 }
+    };
+
+    let db = createEmptyDB();
+    let fileSha = null;
+    let currentTab = 'finance';
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth();
+    let financeEntryType = 'income';
+    let pendingDietImage = null;
+    let isSyncing = false;
+    let editingSubscriptionId = null;
+    let qrScannerStream = null;
+    let qrScanFrameId = null;
+
+    // ─── Utilities ───
+
+    function createEmptyDB() {
+      return {
+        version: 2,
+        finance: {
+          records: [],
+          subscriptions: [],
+          carrier: { mobileBarcode: '', notifyEnabled: true, remindDaysBefore: 3 }
+        },
+        diet: {
+          profile: null,
+          records: []
+        },
+        calculator: { savedAt: null }
+      };
+    }
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    function formatMoney(n) {
+      return '$' + Number(n).toLocaleString('zh-TW', { maximumFractionDigits: 0 });
+    }
+
+    function pad2(n) { return String(n).padStart(2, '0'); }
+
+    function todayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+    }
+
+    function monthLabel(y, m) {
+      return `${y}年${m + 1}月`;
+    }
+
+    function showToast(msg, isError) {
+      const el = document.getElementById('toast');
+      const inner = document.getElementById('toastInner');
+      inner.textContent = msg;
+      inner.className = isError
+        ? 'bg-red-500/95 text-white text-sm px-5 py-2.5 rounded-full shadow-lg backdrop-blur'
+        : 'bg-gray-900/90 text-white text-sm px-5 py-2.5 rounded-full shadow-lg backdrop-blur';
+      el.classList.remove('hidden');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => el.classList.add('hidden'), 3000);
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(id) {
+      if (id === 'modalScanner') stopQrScanner();
+      document.getElementById(id).classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function getSettings() {
+      try {
+        return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveSettings(obj) {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(obj));
+    }
+
+    function isConfigured() {
+      const s = getSettings();
+      return !!(s.username && s.repo && s.token);
+    }
+
+    function setSyncStatus(text, spinning) {
+      const el = document.getElementById('syncStatus');
+      el.innerHTML = spinning
+        ? `<span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 border-2 border-ios-blue border-t-transparent rounded-full sync-spin"></span>${text}</span>`
+        : text;
+    }
+
+    // ─── GitHub API ───
+
+    async function githubFetch(path, options) {
+      const s = getSettings();
+      const url = `https://api.github.com/repos/${s.username}/${s.repo}/contents/${path}`;
+      const headers = {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${s.token}`,
+        'X-GitHub-Api-Version': '2022-11-28'
+      };
+      const res = await fetch(url, { ...options, headers: { ...headers, ...(options?.headers || {}) } });
+      return res;
+    }
+
+    async function loadFromGitHub() {
+      if (!isConfigured()) {
+        setSyncStatus('尚未設定 GitHub');
+        return;
+      }
+      setSyncStatus('同步中…', true);
+      try {
+        const res = await githubFetch(DB_PATH, { method: 'GET' });
+        if (res.status === 404) {
+          db = createEmptyDB();
+          fileSha = null;
+          setSyncStatus('已連線 · 新建資料庫');
+          renderAll();
+          checkSubscriptionReminders();
+          return;
+        }
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(parseGitHubError(res.status, err));
+        }
+        const data = await res.json();
+        fileSha = data.sha;
+        const decoded = JSON.parse(atob(data.content.replace(/\n/g, '')));
+        db = mergeDB(decoded);
+        setSyncStatus('已同步 · ' + new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }));
+        renderAll();
+        checkSubscriptionReminders();
+      } catch (e) {
+        setSyncStatus('同步失敗');
+        showToast(e.message || '無法讀取 GitHub 資料', true);
+      }
+    }
+
+    async function saveToGitHub() {
+      if (!isConfigured()) {
+        showToast('請先設定 GitHub 同步', true);
+        return false;
+      }
+      if (isSyncing) return false;
+      isSyncing = true;
+      setSyncStatus('上傳中…', true);
+      try {
+        if (fileSha) {
+          const check = await githubFetch(DB_PATH, { method: 'GET' });
+          if (check.ok) {
+            const latest = await check.json();
+            fileSha = latest.sha;
+          }
+        }
+        const content = btoa(unescape(encodeURIComponent(JSON.stringify(db, null, 2))));
+        const body = {
+          message: 'Update vibe_tracker_db.json',
+          content: content
+        };
+        if (fileSha) body.sha = fileSha;
+
+        const res = await githubFetch(DB_PATH, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(parseGitHubError(res.status, err));
+        }
+        const result = await res.json();
+        fileSha = result.content.sha;
+        setSyncStatus('已同步 · ' + new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }));
+        return true;
+      } catch (e) {
+        setSyncStatus('上傳失敗');
+        showToast(e.message || '無法同步至 GitHub', true);
+        return false;
+      } finally {
+        isSyncing = false;
+      }
+    }
+
+    function parseGitHubError(status, err) {
+      if (status === 401) return 'Token 無效或已過期，請重新設定 PAT';
+      if (status === 403) return '權限不足，請確認 PAT 具有 repo 權限';
+      if (status === 404) return '找不到倉庫或帳號，請檢查設定';
+      return err.message || `GitHub API 錯誤 (${status})`;
+    }
+
+    function mergeDB(remote) {
+      const base = createEmptyDB();
+      if (!remote || typeof remote !== 'object') return base;
+      const fin = remote.finance || {};
+      return {
+        version: Math.max(remote.version || 1, 2),
+        finance: {
+          records: Array.isArray(fin.records) ? fin.records : (Array.isArray(remote.finance?.records) ? remote.finance.records : []),
+          subscriptions: Array.isArray(fin.subscriptions) ? fin.subscriptions : [],
+          carrier: {
+            mobileBarcode: fin.carrier?.mobileBarcode || '',
+            notifyEnabled: fin.carrier?.notifyEnabled !== false,
+            remindDaysBefore: fin.carrier?.remindDaysBefore ?? 3
+          }
+        },
+        diet: {
+          profile: remote.diet?.profile || null,
+          records: Array.isArray(remote.diet?.records) ? remote.diet.records : []
+        },
+        calculator: remote.calculator || { savedAt: null }
+      };
+    }
+
+    async function mutateAndSync(mutator) {
+      mutator();
+      renderAll();
+      await saveToGitHub();
+      checkSubscriptionReminders();
+    }
+
+    // ─── Carrier & Invoice ───
+
+    function validateCarrierCode(code) {
+      return /^\/[0-9A-Z.\-+]{7}$/.test(code.toUpperCase());
+    }
+
+    function renderCarrierBarcode(code) {
+      const svg = document.getElementById('carrierBarcode');
+      if (!code || typeof JsBarcode === 'undefined') return;
+      try {
+        JsBarcode(svg, code, {
+          format: 'CODE39',
+          lineColor: '#1C1C1E',
+          width: 2,
+          height: 72,
+          displayValue: false,
+          margin: 8
+        });
+      } catch {
+        svg.innerHTML = '';
+      }
+    }
+
+    function parseTaiwanInvoiceQR(raw) {
+      if (!raw || raw.length < 77) return null;
+      const invoiceNumber = raw.substring(0, 10);
+      const rocDate = raw.substring(10, 17);
+      const totalHex = raw.substring(29, 37);
+      const year = parseInt(rocDate.substring(0, 3), 10) + 1911;
+      const month = rocDate.substring(3, 5);
+      const day = rocDate.substring(5, 7);
+      const total = parseInt(totalHex, 16);
+      if (!invoiceNumber || isNaN(total) || total <= 0) return null;
+      return {
+        invoiceNumber,
+        date: `${year}-${month}-${day}`,
+        amount: total,
+        memo: `發票 ${invoiceNumber}`
+      };
+    }
+
+    function handleInvoiceScanResult(data) {
+      stopQrScanner();
+      closeModal('modalScanner');
+      if (!data) {
+        showToast('無法解析發票 QR Code', true);
+        return;
+      }
+      openFinanceModal('expense');
+      document.getElementById('finAmount').value = data.amount;
+      document.getElementById('finDate').value = data.date;
+      document.getElementById('finMemo').value = data.memo;
+      document.getElementById('finInvoiceNumber').value = data.invoiceNumber;
+      document.getElementById('finCarrierUsed').checked = true;
+      document.getElementById('finCategory').value = '食';
+      showToast('已帶入發票資訊，請確認後儲存');
+    }
+
+    function decodeQrFromImageData(imageData) {
+      if (typeof jsQR === 'undefined') return null;
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      return code ? code.data : null;
+    }
+
+    async function startQrScanner() {
+      const video = document.getElementById('qrScannerVideo');
+      try {
+        qrScannerStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        video.srcObject = qrScannerStream;
+        await video.play();
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const tick = () => {
+          if (!qrScannerStream) return;
+          if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            const raw = decodeQrFromImageData(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            if (raw) {
+              const parsed = parseTaiwanInvoiceQR(raw);
+              if (parsed) { handleInvoiceScanResult(parsed); return; }
+            }
+          }
+          qrScanFrameId = requestAnimationFrame(tick);
+        };
+        qrScanFrameId = requestAnimationFrame(tick);
+      } catch {
+        showToast('無法開啟相機，請改用拍照選取', true);
+      }
+    }
+
+    function stopQrScanner() {
+      if (qrScanFrameId) { cancelAnimationFrame(qrScanFrameId); qrScanFrameId = null; }
+      if (qrScannerStream) {
+        qrScannerStream.getTracks().forEach(t => t.stop());
+        qrScannerStream = null;
+      }
+      const video = document.getElementById('qrScannerVideo');
+      if (video) video.srcObject = null;
+    }
+
+    function openQrScanner() {
+      openModal('modalScanner');
+      startQrScanner();
+    }
+
+    // ─── Subscriptions ───
+
+    function getBillingDate(year, month, day) {
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      return new Date(year, month, Math.min(day, lastDay));
+    }
+
+    function getDaysUntilBilling(sub, refDate) {
+      const ref = refDate || new Date();
+      const y = ref.getFullYear();
+      const m = ref.getMonth();
+      let billing = getBillingDate(y, m, sub.billingDay);
+      if (billing < new Date(ref.getFullYear(), ref.getMonth(), ref.getDate())) {
+        billing = getBillingDate(y, m + 1, sub.billingDay);
+      }
+      const diff = Math.ceil((billing - new Date(ref.getFullYear(), ref.getMonth(), ref.getDate())) / 86400000);
+      return { days: diff, billingDate: billing };
+    }
+
+    function getUpcomingSubscriptions(withinDays) {
+      return (db.finance.subscriptions || [])
+        .filter(s => s.enabled !== false)
+        .map(s => ({ ...s, ...getDaysUntilBilling(s) }))
+        .filter(s => s.days <= withinDays)
+        .sort((a, b) => a.days - b.days);
+    }
+
+    function getSubscriptionMonthlyTotal() {
+      return (db.finance.subscriptions || [])
+        .filter(s => s.enabled !== false)
+        .reduce((sum, s) => sum + (s.amount || 0), 0);
+    }
+
+    async function requestNotificationPermission() {
+      if (!('Notification' in window)) return false;
+      if (Notification.permission === 'granted') return true;
+      if (Notification.permission === 'denied') return false;
+      const result = await Notification.requestPermission();
+      return result === 'granted';
+    }
+
+    function sendSubscriptionNotification(sub, daysLeft) {
+      const title = daysLeft === 0 ? '今日訂閱扣款' : '訂閱即將扣款';
+      const body = daysLeft === 0
+        ? `${sub.name} 今日將扣款 ${formatMoney(sub.amount)}`
+        : `${sub.name} 將於 ${daysLeft} 天後扣款 ${formatMoney(sub.amount)}`;
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body, icon: undefined, tag: `sub-${sub.id}-${daysLeft}` });
+      }
+      showToast(body);
+    }
+
+    function checkSubscriptionReminders() {
+      const carrier = db.finance.carrier || {};
+      if (!carrier.notifyEnabled) return;
+      const NOTIFY_KEY = 'vibe_sub_notified';
+      let notified = {};
+      try { notified = JSON.parse(localStorage.getItem(NOTIFY_KEY)) || {}; } catch { /* ignore */ }
+      let changed = false;
+
+      (db.finance.subscriptions || []).forEach(sub => {
+        if (sub.enabled === false) return;
+        const { days, billingDate } = getDaysUntilBilling(sub);
+        const remind = sub.remindDaysBefore ?? carrier.remindDaysBefore ?? 3;
+        const billingKey = `${sub.id}-${billingDate.toISOString().slice(0, 10)}`;
+        if (days <= remind && days >= 0) {
+          const dayKey = `${billingKey}-d${days}`;
+          if (!notified[dayKey]) {
+            sendSubscriptionNotification(sub, days);
+            notified[dayKey] = Date.now();
+            changed = true;
+          }
+        }
+      });
+
+      if (changed) localStorage.setItem(NOTIFY_KEY, JSON.stringify(notified));
+    }
+
+    function renderSubscriptions() {
+      const subs = db.finance.subscriptions || [];
+      const carrier = db.finance.carrier || {};
+      document.getElementById('subNotifyToggle').checked = carrier.notifyEnabled !== false;
+      document.getElementById('subMonthlyTotal').textContent =
+        '月固定支出 ' + formatMoney(getSubscriptionMonthlyTotal());
+
+      const upcoming = getUpcomingSubscriptions(7);
+      const banner = document.getElementById('subAlertBanner');
+      const alertList = document.getElementById('subAlertList');
+      if (upcoming.length > 0) {
+        banner.classList.remove('hidden');
+        alertList.innerHTML = upcoming.map(s => {
+          const label = s.days === 0 ? '今日扣款' : s.days === 1 ? '明天扣款' : `${s.days} 天後`;
+          return `<p class="text-xs text-orange-700"><span class="font-semibold">${s.name}</span> · ${label} · ${formatMoney(s.amount)}</p>`;
+        }).join('');
+      } else {
+        banner.classList.add('hidden');
+      }
+
+      const list = document.getElementById('subscriptionList');
+      const empty = document.getElementById('subscriptionEmpty');
+      if (subs.length === 0) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      list.innerHTML = subs.map(s => {
+        const { days, billingDate } = getDaysUntilBilling(s);
+        const disabled = s.enabled === false;
+        const dueClass = !disabled && days <= 3 ? 'border-orange-200 bg-orange-50/50' : '';
+        const dueBadge = !disabled && days <= 7
+          ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${days <= 1 ? 'bg-ios-red text-white pulse-soft' : 'bg-orange-100 text-orange-600'}">${days === 0 ? '今日' : days + '天後'}</span>`
+          : '';
+        return `
+        <div class="flex items-center gap-3 rounded-2xl border border-transparent p-3 ${dueClass} ${disabled ? 'opacity-50' : ''}">
+          <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">${s.category || '訂'}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-sm truncate">${s.name}</span>${dueBadge}
+            </div>
+            <p class="text-xs text-ios-gray mt-0.5">每月 ${s.billingDay} 日 · ${formatMoney(s.amount)}${s.memo ? ' · ' + s.memo : ''}</p>
+          </div>
+          <button data-edit-sub="${s.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-blue active:scale-95 transition-transform">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </button>
+          <button data-delete-sub="${s.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>`;
+      }).join('');
+    }
+
+    function renderCarrier() {
+      const code = (db.finance.carrier?.mobileBarcode || '').toUpperCase();
+      const empty = document.getElementById('carrierEmpty');
+      const display = document.getElementById('carrierDisplay');
+      if (!code) {
+        empty.classList.remove('hidden');
+        display.classList.add('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      display.classList.remove('hidden');
+      document.getElementById('carrierCodeText').textContent = code;
+      renderCarrierBarcode(code);
+      const monthRecords = getMonthRecords();
+      const carrierCount = monthRecords.filter(r => r.carrierUsed).length;
+      document.getElementById('carrierStats').textContent =
+        `本月 ${carrierCount} 筆載具發票紀錄`;
+    }
+
+    // ─── BMR / TDEE / Macros ───
+
+    function calcBMR(gender, age, height, weight) {
+      const base = 10 * weight + 6.25 * height - 5 * age;
+      return Math.round(gender === 'male' ? base + 5 : base - 161);
+    }
+
+    function calcTDEE(bmr, activity) {
+      return Math.round(bmr * parseFloat(activity));
+    }
+
+    function macroGrams(totalCal, ratios) {
+      const total = ratios.carbs + ratios.protein + ratios.fat;
+      const carbsCal = totalCal * (ratios.carbs / total);
+      const proteinCal = totalCal * (ratios.protein / total);
+      const fatCal = totalCal * (ratios.fat / total);
+      return {
+        carbs: Math.round(carbsCal / 4),
+        protein: Math.round(proteinCal / 4),
+        fat: Math.round(fatCal / 9)
+      };
+    }
+
+    function getTargets() {
+      const p = db.diet.profile;
+      if (!p || !p.tdee) return null;
+      const bulkCal = Math.round(p.tdee + 300);
+      const cutCal = Math.round(p.tdee - 500);
+      return {
+        bulk: { calories: bulkCal, macros: macroGrams(bulkCal, MACRO_RATIOS.bulk) },
+        cut: { calories: cutCal, macros: macroGrams(cutCal, MACRO_RATIOS.cut) }
+      };
+    }
+
+    // ─── Image Compression ───
+
+    function compressImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const maxW = 1024;
+            let w = img.width;
+            let h = img.height;
+            if (w > maxW) {
+              h = Math.round(h * (maxW / w));
+              w = maxW;
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.6));
+          };
+          img.onerror = () => reject(new Error('無法讀取照片'));
+          img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('無法讀取檔案'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ─── Render: Finance ───
+
+    function getMonthRecords() {
+      return db.finance.records.filter(r => {
+        const d = new Date(r.date);
+        return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+      }).sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    function renderFinance() {
+      document.getElementById('currentMonthLabel').textContent = monthLabel(currentYear, currentMonth);
+      renderSubscriptions();
+      renderCarrier();
+
+      const records = getMonthRecords();
+      let income = 0, expense = 0;
+      records.forEach(r => {
+        if (r.type === 'income') income += r.amount;
+        else expense += r.amount;
+      });
+      document.getElementById('totalIncome').textContent = formatMoney(income);
+      document.getElementById('totalExpense').textContent = formatMoney(expense);
+      const surplus = income - expense;
+      const surplusEl = document.getElementById('totalSurplus');
+      surplusEl.textContent = (surplus >= 0 ? '' : '-') + formatMoney(Math.abs(surplus));
+      surplusEl.className = 'text-lg font-bold ' + (surplus >= 0 ? 'text-ios-blue' : 'text-ios-red');
+
+      const list = document.getElementById('financeList');
+      const empty = document.getElementById('financeEmpty');
+      if (records.length === 0) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      list.innerHTML = records.map(r => `
+        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${r.type === 'income' ? 'bg-green-100 text-ios-green' : 'bg-red-100 text-ios-red'}">
+            ${r.category}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-semibold text-sm truncate">${r.memo || r.category}</span>
+              ${r.carrierUsed ? '<span class="text-[10px] bg-ios-blue/10 text-ios-blue px-1.5 py-0.5 rounded-md font-medium shrink-0">載具</span>' : ''}
+              <span class="font-bold text-sm shrink-0 ${r.type === 'income' ? 'text-ios-green' : 'text-ios-red'}">${r.type === 'income' ? '+' : '-'}${formatMoney(r.amount)}</span>
+            </div>
+            <p class="text-xs text-ios-gray mt-0.5">${r.date}${r.invoiceNumber ? ' · ' + r.invoiceNumber : ''}</p>
+          </div>
+          <button data-delete-finance="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // ─── Render: Diet ───
+
+    function getTodayDietRecords() {
+      const today = todayStr();
+      return db.diet.records.filter(r => r.date === today);
+    }
+
+    function renderMacroTarget(prefix, target, ratios) {
+      const m = target.macros;
+      const total = ratios.carbs + ratios.protein + ratios.fat;
+      document.getElementById(`${prefix}Calories`).textContent = target.calories + ' kcal';
+      document.getElementById(`${prefix}CarbsG`).textContent = m.carbs + ' g';
+      document.getElementById(`${prefix}ProteinG`).textContent = m.protein + ' g';
+      document.getElementById(`${prefix}FatG`).textContent = m.fat + ' g';
+      document.getElementById(`${prefix}CarbsBar`).style.width = (ratios.carbs / total * 100) + '%';
+      document.getElementById(`${prefix}ProteinBar`).style.width = (ratios.protein / total * 100) + '%';
+      document.getElementById(`${prefix}FatBar`).style.width = (ratios.fat / total * 100) + '%';
+    }
+
+    function renderDiet() {
+      const p = db.diet.profile;
+      if (p) {
+        document.getElementById('calcGender').value = p.gender || 'male';
+        document.getElementById('calcAge').value = p.age || '';
+        document.getElementById('calcHeight').value = p.height || '';
+        document.getElementById('calcWeight').value = p.weight || '';
+        document.getElementById('calcActivity').value = p.activity || '1.2';
+        if (p.bmr && p.tdee) {
+          document.getElementById('calcResult').classList.remove('hidden');
+          document.getElementById('resultBMR').textContent = p.bmr;
+          document.getElementById('resultTDEE').textContent = p.tdee;
+        }
+      }
+
+      const targets = getTargets();
+      if (targets) {
+        renderMacroTarget('bulk', targets.bulk, MACRO_RATIOS.bulk);
+        renderMacroTarget('cut', targets.cut, MACRO_RATIOS.cut);
+      } else {
+        ['bulk', 'cut'].forEach(prefix => {
+          document.getElementById(`${prefix}Calories`).textContent = '— kcal';
+          ['Carbs', 'Protein', 'Fat'].forEach(m => {
+            document.getElementById(`${prefix}${m}G`).textContent = '— g';
+            document.getElementById(`${prefix}${m}Bar`).style.width = '0%';
+          });
+        });
+      }
+
+      document.getElementById('todayDateLabel').textContent = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
+      const todayRecords = getTodayDietRecords();
+      let cal = 0, carbs = 0, protein = 0, fat = 0;
+      todayRecords.forEach(r => {
+        cal += r.calories || 0;
+        carbs += r.carbs || 0;
+        protein += r.protein || 0;
+        fat += r.fat || 0;
+      });
+
+      document.getElementById('todayCalories').textContent = cal;
+      document.getElementById('todayCarbs').textContent = Math.round(carbs);
+      document.getElementById('todayProtein').textContent = Math.round(protein);
+      document.getElementById('todayFat').textContent = Math.round(fat);
+
+      if (targets) {
+        const bulkRemain = targets.bulk.calories - cal;
+        const cutRemain = targets.cut.calories - cal;
+        document.getElementById('remainBulk').textContent = bulkRemain >= 0 ? `尚可攝取 ${bulkRemain} kcal` : `超出 ${Math.abs(bulkRemain)} kcal`;
+        document.getElementById('remainBulk').className = 'font-semibold ' + (bulkRemain >= 0 ? 'text-ios-green' : 'text-ios-red');
+        document.getElementById('remainCut').textContent = cutRemain >= 0 ? `尚可攝取 ${cutRemain} kcal` : `超出 ${Math.abs(cutRemain)} kcal`;
+        document.getElementById('remainCut').className = 'font-semibold ' + (cutRemain >= 0 ? 'text-ios-green' : 'text-ios-red');
+        document.getElementById('todayBulkBar').style.width = Math.min(100, cal / targets.bulk.calories * 100) + '%';
+        document.getElementById('todayCutBar').style.width = Math.min(100, cal / targets.cut.calories * 100) + '%';
+
+        const bm = targets.bulk.macros;
+        document.getElementById('todayCarbsPct').textContent = Math.round(carbs / bm.carbs * 100) + '%';
+        document.getElementById('todayProteinPct').textContent = Math.round(protein / bm.protein * 100) + '%';
+        document.getElementById('todayFatPct').textContent = Math.round(fat / bm.fat * 100) + '%';
+        document.getElementById('todayCarbsBar').style.width = Math.min(100, carbs / bm.carbs * 100) + '%';
+        document.getElementById('todayProteinBar').style.width = Math.min(100, protein / bm.protein * 100) + '%';
+        document.getElementById('todayFatBar').style.width = Math.min(100, fat / bm.fat * 100) + '%';
+      } else {
+        document.getElementById('remainBulk').textContent = '請先計算 TDEE';
+        document.getElementById('remainCut').textContent = '請先計算 TDEE';
+        document.getElementById('todayBulkBar').style.width = '0%';
+        document.getElementById('todayCutBar').style.width = '0%';
+        document.getElementById('todayCarbsBar').style.width = '0%';
+        document.getElementById('todayProteinBar').style.width = '0%';
+        document.getElementById('todayFatBar').style.width = '0%';
+      }
+
+      const list = document.getElementById('dietList');
+      const empty = document.getElementById('dietEmpty');
+      if (todayRecords.length === 0) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      list.innerHTML = todayRecords.map(r => `
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+          ${r.image ? `<img src="${r.image}" class="w-full h-36 object-cover" alt="${r.name}">` : ''}
+          <div class="p-4 flex items-center gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-sm truncate">${r.name || '未命名'}</p>
+              <p class="text-xs text-ios-gray mt-0.5">
+                <span class="text-ios-red font-bold">${r.calories || 0}</span> kcal ·
+                碳 <span class="text-blue-500 font-bold">${Math.round(r.carbs || 0)}</span>g ·
+                蛋 <span class="text-green-500 font-bold">${Math.round(r.protein || 0)}</span>g ·
+                脂 <span class="text-yellow-500 font-bold">${Math.round(r.fat || 0)}</span>g
+              </p>
+            </div>
+            <button data-delete-diet="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAll() {
+      renderFinance();
+      renderDiet();
+    }
+
+    // ─── Tab Navigation ───
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-panel').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tab === 'finance' ? 'tabFinance' : 'tabDiet').classList.remove('hidden');
+      document.getElementById('pageTitle').textContent = tab === 'finance' ? '記帳' : '飲控';
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        const active = btn.dataset.tab === tab;
+        btn.classList.toggle('text-ios-blue', active);
+        btn.classList.toggle('text-ios-gray', !active);
+      });
+    }
+
+    // ─── Event Handlers ───
+
+    function bindEvents() {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+      });
+
+      document.getElementById('btnSettings').addEventListener('click', () => {
+        const s = getSettings();
+        document.getElementById('settingUsername').value = s.username || '';
+        document.getElementById('settingRepo').value = s.repo || '';
+        document.getElementById('settingToken').value = s.token || '';
+        openModal('modalSettings');
+      });
+
+      document.getElementById('btnSaveSettings').addEventListener('click', async () => {
+        const username = document.getElementById('settingUsername').value.trim();
+        const repo = document.getElementById('settingRepo').value.trim();
+        const token = document.getElementById('settingToken').value.trim();
+        if (!username || !repo || !token) {
+          showToast('請填寫所有設定欄位', true);
+          return;
+        }
+        saveSettings({ username, repo, token });
+        closeModal('modalSettings');
+        showToast('設定已儲存，正在同步…');
+        await loadFromGitHub();
+      });
+
+      document.querySelectorAll('[data-close]').forEach(el => {
+        el.addEventListener('click', () => closeModal(el.dataset.close));
+      });
+
+      document.getElementById('btnPrevMonth').addEventListener('click', () => {
+        currentMonth--;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        renderFinance();
+      });
+
+      document.getElementById('btnNextMonth').addEventListener('click', () => {
+        currentMonth++;
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        renderFinance();
+      });
+
+      document.getElementById('btnAddIncome').addEventListener('click', () => openFinanceModal('income'));
+      document.getElementById('btnAddExpense').addEventListener('click', () => openFinanceModal('expense'));
+
+      document.getElementById('btnSaveFinance').addEventListener('click', async () => {
+        const amount = parseFloat(document.getElementById('finAmount').value);
+        const category = document.getElementById('finCategory').value;
+        const date = document.getElementById('finDate').value;
+        const memo = document.getElementById('finMemo').value.trim();
+        const carrierUsed = document.getElementById('finCarrierUsed').checked;
+        const invoiceNumber = document.getElementById('finInvoiceNumber').value.trim();
+        if (!amount || amount <= 0) { showToast('請輸入有效金額', true); return; }
+        if (!date) { showToast('請選擇日期', true); return; }
+        closeModal('modalFinance');
+        await mutateAndSync(() => {
+          db.finance.records.push({
+            id: uid(),
+            type: financeEntryType,
+            amount,
+            category,
+            memo,
+            date,
+            carrierUsed: financeEntryType === 'expense' ? carrierUsed : false,
+            invoiceNumber: invoiceNumber || null
+          });
+        });
+        showToast('記帳已儲存');
+      });
+
+      document.getElementById('financeList').addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-delete-finance]');
+        if (!btn) return;
+        const id = btn.dataset.deleteFinance;
+        if (!confirm('確定刪除此筆紀錄？')) return;
+        await mutateAndSync(() => {
+          db.finance.records = db.finance.records.filter(r => r.id !== id);
+        });
+        showToast('已刪除');
+      });
+
+      // Carrier
+      document.getElementById('btnSetupCarrier').addEventListener('click', () => openCarrierModal());
+      document.getElementById('btnEditCarrier').addEventListener('click', () => openCarrierModal());
+      document.getElementById('btnSaveCarrier').addEventListener('click', async () => {
+        const code = document.getElementById('carrierInput').value.trim().toUpperCase();
+        if (!validateCarrierCode(code)) {
+          showToast('載具格式錯誤，需為 / 開頭加 7 碼', true);
+          return;
+        }
+        closeModal('modalCarrier');
+        await mutateAndSync(() => {
+          if (!db.finance.carrier) db.finance.carrier = {};
+          db.finance.carrier.mobileBarcode = code;
+        });
+        showToast('載具已儲存');
+      });
+      document.getElementById('btnCopyCarrier').addEventListener('click', async () => {
+        const code = db.finance.carrier?.mobileBarcode;
+        if (!code) return;
+        try {
+          await navigator.clipboard.writeText(code);
+          showToast('已複製載具條碼');
+        } catch {
+          showToast('複製失敗', true);
+        }
+      });
+      document.getElementById('btnScanInvoice').addEventListener('click', () => {
+        if (!db.finance.carrier?.mobileBarcode) {
+          showToast('請先設定載具條碼', true);
+          return;
+        }
+        openQrScanner();
+      });
+
+      // QR file fallback
+      document.getElementById('qrFileInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        e.target.value = '';
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const raw = decodeQrFromImageData(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            const parsed = raw ? parseTaiwanInvoiceQR(raw) : null;
+            handleInvoiceScanResult(parsed);
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById('modalScanner').addEventListener('click', (e) => {
+        if (e.target.dataset.close === 'modalScanner') stopQrScanner();
+      });
+
+      // Subscriptions
+      document.getElementById('btnAddSubscription').addEventListener('click', () => openSubscriptionModal());
+      document.getElementById('btnSaveSubscription').addEventListener('click', async () => {
+        const name = document.getElementById('subName').value.trim();
+        const amount = parseFloat(document.getElementById('subAmount').value);
+        const billingDay = parseInt(document.getElementById('subBillingDay').value, 10);
+        const category = document.getElementById('subCategory').value;
+        const remindDaysBefore = parseInt(document.getElementById('subRemindDays').value, 10);
+        const memo = document.getElementById('subMemo').value.trim();
+        if (!name) { showToast('請輸入訂閱名稱', true); return; }
+        if (!amount || amount <= 0) { showToast('請輸入有效金額', true); return; }
+        if (!billingDay || billingDay < 1 || billingDay > 31) { showToast('扣款日需為 1–31', true); return; }
+        closeModal('modalSubscription');
+        await mutateAndSync(() => {
+          if (editingSubscriptionId) {
+            const sub = db.finance.subscriptions.find(s => s.id === editingSubscriptionId);
+            if (sub) {
+              Object.assign(sub, { name, amount, billingDay, category, remindDaysBefore, memo, enabled: true });
+            }
+            editingSubscriptionId = null;
+          } else {
+            db.finance.subscriptions.push({
+              id: uid(), name, amount, billingDay, category, remindDaysBefore, memo, enabled: true
+            });
+          }
+        });
+        const granted = await requestNotificationPermission();
+        if (granted) showToast('訂閱已儲存，將推送扣款提醒');
+        else showToast('訂閱已儲存（請允許通知以接收提醒）');
+      });
+
+      document.getElementById('subNotifyToggle').addEventListener('change', async (e) => {
+        const enabled = e.target.checked;
+        if (enabled) {
+          const granted = await requestNotificationPermission();
+          if (!granted) {
+            e.target.checked = false;
+            showToast('請在系統設定中允許通知', true);
+            return;
+          }
+        }
+        await mutateAndSync(() => {
+          if (!db.finance.carrier) db.finance.carrier = {};
+          db.finance.carrier.notifyEnabled = enabled;
+        });
+      });
+
+      document.getElementById('subscriptionList').addEventListener('click', async (e) => {
+        const editBtn = e.target.closest('[data-edit-sub]');
+        const delBtn = e.target.closest('[data-delete-sub]');
+        if (editBtn) {
+          const sub = db.finance.subscriptions.find(s => s.id === editBtn.dataset.editSub);
+          if (sub) openSubscriptionModal(sub);
+          return;
+        }
+        if (delBtn) {
+          const id = delBtn.dataset.deleteSub;
+          if (!confirm('確定刪除此訂閱？')) return;
+          await mutateAndSync(() => {
+            db.finance.subscriptions = db.finance.subscriptions.filter(s => s.id !== id);
+          });
+          showToast('訂閱已刪除');
+        }
+      });
+
+      document.getElementById('btnCalculate').addEventListener('click', async () => {
+        const gender = document.getElementById('calcGender').value;
+        const age = parseInt(document.getElementById('calcAge').value);
+        const height = parseFloat(document.getElementById('calcHeight').value);
+        const weight = parseFloat(document.getElementById('calcWeight').value);
+        const activity = document.getElementById('calcActivity').value;
+        if (!age || !height || !weight) { showToast('請填寫完整資料', true); return; }
+        const bmr = calcBMR(gender, age, height, weight);
+        const tdee = calcTDEE(bmr, activity);
+        document.getElementById('calcResult').classList.remove('hidden');
+        document.getElementById('resultBMR').textContent = bmr;
+        document.getElementById('resultTDEE').textContent = tdee;
+        await mutateAndSync(() => {
+          db.diet.profile = { gender, age, height, weight, activity, bmr, tdee };
+          db.calculator.savedAt = new Date().toISOString();
+        });
+        showToast('計算結果已儲存');
+      });
+
+      document.getElementById('btnAddFoodManual').addEventListener('click', () => {
+        pendingDietImage = null;
+        resetDietForm();
+        openModal('modalDiet');
+      });
+
+      document.getElementById('cameraInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        e.target.value = '';
+        if (!file) return;
+        try {
+          pendingDietImage = await compressImage(file);
+          resetDietForm();
+          document.getElementById('dietPreviewWrap').classList.remove('hidden');
+          document.getElementById('dietPreview').src = pendingDietImage;
+          openModal('modalDiet');
+        } catch (err) {
+          showToast(err.message || '照片處理失敗', true);
+        }
+      });
+
+      document.getElementById('btnSaveDiet').addEventListener('click', async () => {
+        const name = document.getElementById('dietName').value.trim();
+        const calories = parseFloat(document.getElementById('dietCalories').value) || 0;
+        const carbs = parseFloat(document.getElementById('dietCarbs').value) || 0;
+        const protein = parseFloat(document.getElementById('dietProtein').value) || 0;
+        const fat = parseFloat(document.getElementById('dietFat').value) || 0;
+        if (!name && !pendingDietImage) { showToast('請輸入名稱或拍照', true); return; }
+        closeModal('modalDiet');
+        const image = pendingDietImage;
+        pendingDietImage = null;
+        await mutateAndSync(() => {
+          db.diet.records.push({
+            id: uid(),
+            date: todayStr(),
+            name: name || '拍照紀錄',
+            calories,
+            carbs,
+            protein,
+            fat,
+            image: image || null
+          });
+        });
+        showToast('飲食紀錄已儲存');
+      });
+
+      document.getElementById('dietList').addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-delete-diet]');
+        if (!btn) return;
+        const id = btn.dataset.deleteDiet;
+        if (!confirm('確定刪除此筆飲食紀錄？')) return;
+        await mutateAndSync(() => {
+          db.diet.records = db.diet.records.filter(r => r.id !== id);
+        });
+        showToast('已刪除');
+      });
+    }
+
+    function openFinanceModal(type) {
+      financeEntryType = type;
+      document.getElementById('financeModalTitle').textContent = type === 'income' ? '新增收入' : '新增支出';
+      document.getElementById('finAmount').value = '';
+      document.getElementById('finCategory').value = '食';
+      document.getElementById('finDate').value = todayStr();
+      document.getElementById('finMemo').value = '';
+      document.getElementById('finInvoiceNumber').value = '';
+      document.getElementById('finCarrierUsed').checked = false;
+      const carrierWrap = document.getElementById('finCarrierWrap');
+      const hasCarrier = !!db.finance.carrier?.mobileBarcode;
+      carrierWrap.classList.toggle('hidden', type !== 'expense' || !hasCarrier);
+      openModal('modalFinance');
+    }
+
+    function openCarrierModal() {
+      document.getElementById('carrierInput').value = db.finance.carrier?.mobileBarcode || '';
+      openModal('modalCarrier');
+    }
+
+    function openSubscriptionModal(sub) {
+      editingSubscriptionId = sub ? sub.id : null;
+      document.getElementById('subModalTitle').textContent = sub ? '編輯訂閱' : '新增訂閱';
+      document.getElementById('subName').value = sub?.name || '';
+      document.getElementById('subAmount').value = sub?.amount || '';
+      document.getElementById('subBillingDay').value = sub?.billingDay || '';
+      document.getElementById('subCategory').value = sub?.category || '樂';
+      document.getElementById('subRemindDays').value = sub?.remindDaysBefore ?? 3;
+      document.getElementById('subMemo').value = sub?.memo || '';
+      openModal('modalSubscription');
+    }
+
+    function resetDietForm() {
+      document.getElementById('dietName').value = '';
+      document.getElementById('dietCalories').value = '';
+      document.getElementById('dietCarbs').value = '';
+      document.getElementById('dietProtein').value = '';
+      document.getElementById('dietFat').value = '';
+      if (!pendingDietImage) {
+        document.getElementById('dietPreviewWrap').classList.add('hidden');
+        document.getElementById('dietPreview').src = '';
+      }
+    }
+
+    // ─── Init ───
+
+    async function init() {
+      bindEvents();
+      switchTab('finance');
+      renderAll();
+      if (isConfigured()) {
+        await loadFromGitHub();
+      }
+      checkSubscriptionReminders();
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') checkSubscriptionReminders();
+      });
+      setInterval(checkSubscriptionReminders, 30 * 60 * 1000);
+    }
+
+    init();
+  })();
+  </script>
+</body>
+</html>

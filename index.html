@@ -325,9 +325,22 @@
         </div>
       </div>
 
+      <!-- Photo Setting -->
+      <div class="bg-white rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between">
+        <div>
+          <p class="text-sm font-semibold">飲食照片</p>
+          <p class="text-[11px] text-ios-gray">減輕同步容量，到期自動清除</p>
+        </div>
+        <select id="photoRetentionSetting" class="bg-ios-bg rounded-xl px-3 py-2 text-sm border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          <option value="0">不儲存</option>
+          <option value="3">保留 3 天</option>
+          <option value="7">保留 7 天</option>
+        </select>
+      </div>
+
       <!-- Camera & Add Food -->
       <div class="flex gap-3">
-        <label class="flex-1 flex items-center justify-center gap-2 bg-ios-blue text-white font-semibold py-3 rounded-2xl shadow-sm active:scale-95 transition-transform cursor-pointer">
+        <label id="cameraLabel" class="flex-1 flex items-center justify-center gap-2 bg-ios-blue text-white font-semibold py-3 rounded-2xl shadow-sm active:scale-95 transition-transform cursor-pointer">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           拍照紀錄飲食
           <input id="cameraInput" type="file" accept="image/*" capture="environment" class="hidden">
@@ -561,6 +574,10 @@
 
     const DB_PATH = 'vibe_tracker_db.json';
     const SETTINGS_KEY = 'vibe_tracker_settings';
+    const LOCAL_DB_KEY = 'vibe_tracker_db_cache';
+    const CARRIER_KEY = 'vibe_carrier_backup';
+    const DIET_PROFILE_KEY = 'vibe_diet_profile_backup';
+    const DEFAULT_PHOTO_RETENTION_DAYS = 3;
     const CATEGORIES = ['食', '衣', '住', '行', '育', '樂', '其他'];
     const MACRO_RATIOS = {
       bulk: { carbs: 5, protein: 2, fat: 3 },
@@ -584,6 +601,7 @@
     function createEmptyDB() {
       return {
         version: 2,
+        meta: { updatedAt: Date.now() },
         finance: {
           records: [],
           subscriptions: [],
@@ -591,10 +609,119 @@
         },
         diet: {
           profile: null,
-          records: []
+          records: [],
+          photoRetentionDays: DEFAULT_PHOTO_RETENTION_DAYS
         },
         calculator: { savedAt: null }
       };
+    }
+
+    function daysSince(dateStr) {
+      const a = new Date(dateStr + 'T12:00:00');
+      const b = new Date(todayStr() + 'T12:00:00');
+      return Math.floor((b - a) / 86400000);
+    }
+
+    function getPhotoRetentionDays() {
+      const v = db.diet?.photoRetentionDays;
+      return typeof v === 'number' ? v : DEFAULT_PHOTO_RETENTION_DAYS;
+    }
+
+    function isPhotoStorageEnabled() {
+      return getPhotoRetentionDays() > 0;
+    }
+
+    function purgeExpiredDietImages() {
+      const retention = getPhotoRetentionDays();
+      let changed = false;
+      (db.diet.records || []).forEach(r => {
+        if (!r.image) return;
+        if (retention <= 0 || daysSince(r.date) >= retention) {
+          r.image = null;
+          changed = true;
+        }
+      });
+      return changed;
+    }
+
+    function touchMeta() {
+      if (!db.meta) db.meta = {};
+      db.meta.updatedAt = Date.now();
+    }
+
+    function saveLocalCache() {
+      touchMeta();
+      const code = db.finance?.carrier?.mobileBarcode || '';
+      if (code) localStorage.setItem(CARRIER_KEY, code);
+      if (db.diet?.profile?.tdee) {
+        localStorage.setItem(DIET_PROFILE_KEY, JSON.stringify(db.diet.profile));
+      }
+      try {
+        localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db));
+        return;
+      } catch { /* quota */ }
+      try {
+        const lite = JSON.parse(JSON.stringify(db));
+        lite.diet.records = (lite.diet.records || []).map(r => ({ ...r, image: null }));
+        localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(lite));
+      } catch { /* quota exceeded */ }
+    }
+
+    function loadDietProfileBackup() {
+      try {
+        const raw = localStorage.getItem(DIET_PROFILE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function loadLocalCache() {
+      try {
+        const raw = localStorage.getItem(LOCAL_DB_KEY);
+        if (raw) return mergeDB(JSON.parse(raw));
+      } catch { /* ignore */ }
+      const partial = createEmptyDB();
+      let hasPartial = false;
+      const code = localStorage.getItem(CARRIER_KEY);
+      if (code) {
+        partial.finance.carrier.mobileBarcode = code;
+        hasPartial = true;
+      }
+      const profile = loadDietProfileBackup();
+      if (profile?.tdee) {
+        partial.diet.profile = profile;
+        hasPartial = true;
+      }
+      return hasPartial ? partial : null;
+    }
+
+    function hasValidProfile(p) {
+      return !!(p && p.tdee && p.bmr);
+    }
+
+    function mergeDietRecords(remote, local) {
+      const byId = new Map();
+      (remote || []).forEach(r => byId.set(r.id, { ...r }));
+      (local || []).forEach(r => {
+        const prev = byId.get(r.id);
+        byId.set(r.id, prev ? { ...prev, ...r, image: r.image || prev.image || null } : { ...r });
+      });
+      return Array.from(byId.values()).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    }
+
+    function dbPayload(stripImages) {
+      if (!stripImages) return db;
+      const copy = JSON.parse(JSON.stringify(db));
+      copy.diet.records = (copy.diet.records || []).map(r => ({ ...r, image: null }));
+      return copy;
+    }
+
+    function dbNeedsCloudRepair(remote, merged) {
+      const fixes = [];
+      if (!hasValidProfile(remote?.diet?.profile) && hasValidProfile(merged.diet?.profile)) fixes.push('profile');
+      if (!(remote?.finance?.carrier?.mobileBarcode || '').trim() && (merged.finance?.carrier?.mobileBarcode || '').trim()) fixes.push('carrier');
+      return fixes;
     }
 
     function uid() {
@@ -682,14 +809,17 @@
         setSyncStatus('尚未設定 GitHub');
         return;
       }
+      const localCache = loadLocalCache();
       setSyncStatus('同步中…', true);
       try {
         const res = await githubFetch(DB_PATH, { method: 'GET' });
         if (res.status === 404) {
-          db = createEmptyDB();
+          db = localCache ? mergeDB({}, localCache) : createEmptyDB();
           fileSha = null;
-          setSyncStatus('已連線 · 新建資料庫');
+          saveLocalCache();
           renderAll();
+          await saveToGitHub();
+          setSyncStatus('已連線 · 資料已建立');
           checkSubscriptionReminders();
           return;
         }
@@ -700,14 +830,51 @@
         const data = await res.json();
         fileSha = data.sha;
         const decoded = JSON.parse(atob(data.content.replace(/\n/g, '')));
-        db = mergeDB(decoded);
+        db = mergeDB(decoded, localCache);
+        if (purgeExpiredDietImages()) saveLocalCache();
+        saveLocalCache();
+        const repairs = dbNeedsCloudRepair(decoded, db);
+        if (repairs.length) await saveToGitHub();
         setSyncStatus('已同步 · ' + new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }));
         renderAll();
         checkSubscriptionReminders();
       } catch (e) {
-        setSyncStatus('同步失敗');
-        showToast(e.message || '無法讀取 GitHub 資料', true);
+        if (localCache) {
+          db = mergeDB({}, localCache);
+          saveLocalCache();
+          renderAll();
+          setSyncStatus('離線 · 使用本機快取');
+          showToast('雲端同步失敗，已載入本機快取', true);
+        } else {
+          setSyncStatus('同步失敗');
+          showToast(e.message || '無法讀取 GitHub 資料', true);
+        }
       }
+    }
+
+    async function putDbToGitHub(payload) {
+      if (fileSha) {
+        const check = await githubFetch(DB_PATH, { method: 'GET' });
+        if (check.ok) {
+          const latest = await check.json();
+          fileSha = latest.sha;
+        }
+      }
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+      const body = { message: 'Update vibe_tracker_db.json', content };
+      if (fileSha) body.sha = fileSha;
+      const res = await githubFetch(DB_PATH, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(parseGitHubError(res.status, err));
+      }
+      const result = await res.json();
+      fileSha = result.content.sha;
+      return true;
     }
 
     async function saveToGitHub() {
@@ -718,36 +885,24 @@
       if (isSyncing) return false;
       isSyncing = true;
       setSyncStatus('上傳中…', true);
+      const hasImages = (db.diet?.records || []).some(r => r.image);
       try {
-        if (fileSha) {
-          const check = await githubFetch(DB_PATH, { method: 'GET' });
-          if (check.ok) {
-            const latest = await check.json();
-            fileSha = latest.sha;
-          }
-        }
-        const content = btoa(unescape(encodeURIComponent(JSON.stringify(db, null, 2))));
-        const body = {
-          message: 'Update vibe_tracker_db.json',
-          content: content
-        };
-        if (fileSha) body.sha = fileSha;
-
-        const res = await githubFetch(DB_PATH, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(parseGitHubError(res.status, err));
-        }
-        const result = await res.json();
-        fileSha = result.content.sha;
+        await putDbToGitHub(dbPayload(false));
         setSyncStatus('已同步 · ' + new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }));
         return true;
       } catch (e) {
+        if (hasImages) {
+          try {
+            await putDbToGitHub(dbPayload(true));
+            setSyncStatus('已同步 · ' + new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }));
+            showToast('設定已同步（照片保留本機）');
+            return true;
+          } catch (e2) {
+            setSyncStatus('上傳失敗');
+            showToast(e2.message || '無法同步至 GitHub', true);
+            return false;
+          }
+        }
         setSyncStatus('上傳失敗');
         showToast(e.message || '無法同步至 GitHub', true);
         return false;
@@ -763,34 +918,77 @@
       return err.message || `GitHub API 錯誤 (${status})`;
     }
 
-    function mergeDB(remote) {
-      const base = createEmptyDB();
-      if (!remote || typeof remote !== 'object') return base;
+    function mergeDB(remote, local) {
+      if (!remote || typeof remote !== 'object') remote = {};
+      if (!local || typeof local !== 'object') local = {};
       const fin = remote.finance || {};
+      const localFin = local.finance || {};
+      const remoteRecords = Array.isArray(fin.records) ? fin.records : [];
+      const localRecords = Array.isArray(localFin.records) ? localFin.records : [];
+      const remoteSubs = Array.isArray(fin.subscriptions) ? fin.subscriptions : [];
+      const localSubs = Array.isArray(localFin.subscriptions) ? localFin.subscriptions : [];
+      const remoteCarrier = (fin.carrier?.mobileBarcode || '').trim();
+      const localCarrier = (localFin.carrier?.mobileBarcode || localStorage.getItem(CARRIER_KEY) || '').trim();
+      const remoteProfile = remote.diet?.profile;
+      const localProfile = local.diet?.profile || loadDietProfileBackup();
+      const remoteUpdated = remote.meta?.updatedAt || 0;
+      const localUpdated = local.meta?.updatedAt || 0;
+      const newerIsLocal = localUpdated > remoteUpdated;
+
+      let profile = null;
+      if (hasValidProfile(remoteProfile) && hasValidProfile(localProfile)) {
+        profile = newerIsLocal ? localProfile : remoteProfile;
+      } else if (hasValidProfile(localProfile)) {
+        profile = localProfile;
+      } else if (hasValidProfile(remoteProfile)) {
+        profile = remoteProfile;
+      }
+
+      const remoteDietRecords = remote.diet?.records || [];
+      const localDietRecords = local.diet?.records || [];
+      let dietRecords;
+      if (remoteDietRecords.length && localDietRecords.length) {
+        dietRecords = mergeDietRecords(remoteDietRecords, localDietRecords);
+      } else {
+        dietRecords = remoteDietRecords.length ? remoteDietRecords : localDietRecords;
+      }
+
       return {
-        version: Math.max(remote.version || 1, 2),
+        version: Math.max(remote.version || 1, local.version || 1, 2),
+        meta: { updatedAt: Math.max(remoteUpdated, localUpdated, Date.now()) },
         finance: {
-          records: Array.isArray(fin.records) ? fin.records : (Array.isArray(remote.finance?.records) ? remote.finance.records : []),
-          subscriptions: Array.isArray(fin.subscriptions) ? fin.subscriptions : [],
+          records: newerIsLocal && localRecords.length >= remoteRecords.length
+            ? localRecords
+            : (remoteRecords.length ? remoteRecords : localRecords),
+          subscriptions: remoteSubs.length && !newerIsLocal ? remoteSubs : (localSubs.length ? localSubs : remoteSubs),
           carrier: {
-            mobileBarcode: fin.carrier?.mobileBarcode || '',
-            notifyEnabled: fin.carrier?.notifyEnabled !== false,
-            remindDaysBefore: fin.carrier?.remindDaysBefore ?? 3
+            mobileBarcode: remoteCarrier || localCarrier,
+            notifyEnabled: fin.carrier?.notifyEnabled ?? localFin.carrier?.notifyEnabled ?? true,
+            remindDaysBefore: fin.carrier?.remindDaysBefore ?? localFin.carrier?.remindDaysBefore ?? 3
           }
         },
         diet: {
-          profile: remote.diet?.profile || null,
-          records: Array.isArray(remote.diet?.records) ? remote.diet.records : []
+          profile,
+          records: dietRecords,
+          photoRetentionDays: typeof local.diet?.photoRetentionDays === 'number'
+            ? local.diet.photoRetentionDays
+            : (typeof remote.diet?.photoRetentionDays === 'number' ? remote.diet.photoRetentionDays : DEFAULT_PHOTO_RETENTION_DAYS)
         },
-        calculator: remote.calculator || { savedAt: null }
+        calculator: newerIsLocal && local.calculator?.savedAt
+          ? local.calculator
+          : (remote.calculator?.savedAt ? remote.calculator : local.calculator || { savedAt: null })
       };
     }
 
     async function mutateAndSync(mutator) {
       mutator();
+      purgeExpiredDietImages();
+      saveLocalCache();
       renderAll();
-      await saveToGitHub();
+      const ok = await saveToGitHub();
+      if (ok) saveLocalCache();
       checkSubscriptionReminders();
+      return ok;
     }
 
     // ─── Carrier & Invoice ───
@@ -1192,6 +1390,15 @@
     }
 
     function renderDiet() {
+      const retention = getPhotoRetentionDays();
+      const photoSelect = document.getElementById('photoRetentionSetting');
+      if (photoSelect) photoSelect.value = String(retention);
+      const cameraLabel = document.getElementById('cameraLabel');
+      if (cameraLabel) {
+        cameraLabel.classList.toggle('opacity-40', !isPhotoStorageEnabled());
+        cameraLabel.classList.toggle('pointer-events-none', !isPhotoStorageEnabled());
+      }
+
       const p = db.diet.profile;
       if (p) {
         document.getElementById('calcGender').value = p.gender || 'male';
@@ -1404,12 +1611,12 @@
           showToast('載具格式錯誤，需為 / 開頭加 7 碼', true);
           return;
         }
-        closeModal('modalCarrier');
-        await mutateAndSync(() => {
+        const ok = await mutateAndSync(() => {
           if (!db.finance.carrier) db.finance.carrier = {};
           db.finance.carrier.mobileBarcode = code;
         });
-        showToast('載具已儲存');
+        closeModal('modalCarrier');
+        showToast(ok ? '載具已儲存並同步' : '載具已存本機，雲端同步失敗請稍後重試', !ok);
       });
       document.getElementById('btnCopyCarrier').addEventListener('click', async () => {
         const code = db.finance.carrier?.mobileBarcode;
@@ -1533,11 +1740,11 @@
         document.getElementById('calcResult').classList.remove('hidden');
         document.getElementById('resultBMR').textContent = bmr;
         document.getElementById('resultTDEE').textContent = tdee;
-        await mutateAndSync(() => {
+        const ok = await mutateAndSync(() => {
           db.diet.profile = { gender, age, height, weight, activity, bmr, tdee };
           db.calculator.savedAt = new Date().toISOString();
         });
-        showToast('計算結果已儲存');
+        showToast(ok ? '計算結果已儲存並同步' : '已存本機，雲端同步失敗請稍後重試', !ok);
       });
 
       document.getElementById('btnAddFoodManual').addEventListener('click', () => {
@@ -1546,7 +1753,24 @@
         openModal('modalDiet');
       });
 
+      document.getElementById('photoRetentionSetting').addEventListener('change', async (e) => {
+        const days = parseInt(e.target.value, 10);
+        const ok = await mutateAndSync(() => {
+          db.diet.photoRetentionDays = days;
+          purgeExpiredDietImages();
+        });
+        const msg = days === 0
+          ? (ok ? '已關閉照片儲存' : '已關閉（本機），同步失敗')
+          : (ok ? `照片將保留 ${days} 天` : `已設定 ${days} 天（本機），同步失敗`);
+        showToast(msg, !ok);
+      });
+
       document.getElementById('cameraInput').addEventListener('change', async (e) => {
+        if (!isPhotoStorageEnabled()) {
+          showToast('已關閉照片儲存，請改用手動新增', true);
+          e.target.value = '';
+          return;
+        }
         const file = e.target.files[0];
         e.target.value = '';
         if (!file) return;
@@ -1571,7 +1795,7 @@
         closeModal('modalDiet');
         const image = pendingDietImage;
         pendingDietImage = null;
-        await mutateAndSync(() => {
+        const ok = await mutateAndSync(() => {
           db.diet.records.push({
             id: uid(),
             date: todayStr(),
@@ -1580,10 +1804,10 @@
             carbs,
             protein,
             fat,
-            image: image || null
+            image: isPhotoStorageEnabled() ? (image || null) : null
           });
         });
-        showToast('飲食紀錄已儲存');
+        showToast(ok ? '飲食紀錄已儲存' : '已存本機，雲端同步失敗', !ok);
       });
 
       document.getElementById('dietList').addEventListener('click', async (e) => {
@@ -1647,13 +1871,29 @@
     async function init() {
       bindEvents();
       switchTab('finance');
-      renderAll();
+      const cached = loadLocalCache();
+      if (cached) {
+        db = cached;
+        renderAll();
+      } else {
+        renderAll();
+      }
       if (isConfigured()) {
         await loadFromGitHub();
       }
+      purgeExpiredDietImages();
+      saveLocalCache();
+      renderAll();
       checkSubscriptionReminders();
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') checkSubscriptionReminders();
+        if (document.visibilityState === 'visible') {
+          if (purgeExpiredDietImages()) {
+            saveLocalCache();
+            renderAll();
+            if (isConfigured()) saveToGitHub();
+          }
+          checkSubscriptionReminders();
+        }
       });
       setInterval(checkSubscriptionReminders, 30 * 60 * 1000);
     }

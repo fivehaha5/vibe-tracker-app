@@ -436,22 +436,69 @@
       <div id="sleepList" class="space-y-2"></div>
       <p id="sleepEmpty" class="text-center text-ios-gray text-sm py-8 hidden">尚無睡眠紀錄</p>
     </section>
+
+    <!-- ===== TRAINING TAB ===== -->
+    <section id="tabTrain" class="tab-panel hidden space-y-4">
+
+      <div class="flex items-center justify-between bg-white rounded-2xl shadow-sm px-4 py-3">
+        <button id="btnPrevTrainMonth" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
+          <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <span id="trainMonthLabel" class="text-base font-semibold"></span>
+        <button id="btnNextTrainMonth" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
+          <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <h2 class="text-base font-bold mb-1">部位恢復狀態</h2>
+        <p class="text-xs text-ios-gray mb-4">依上次訓練量估算，避免連續刺激同部位</p>
+        <div id="recoveryGrid" class="grid grid-cols-3 gap-2"></div>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <h2 class="text-base font-bold mb-3">快速紀錄訓練</h2>
+        <p class="text-xs text-ios-gray mb-3">選部位 → 選組數</p>
+        <div id="trainPartGrid" class="grid grid-cols-3 gap-2 mb-4"></div>
+        <div id="trainSetsRow" class="hidden">
+          <p class="text-xs text-ios-gray mb-2">組數（<span id="trainSelectedPartLabel">—</span>）</p>
+          <div class="grid grid-cols-4 gap-2">
+            <button type="button" data-train-sets="8" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">8</button>
+            <button type="button" data-train-sets="12" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">12</button>
+            <button type="button" data-train-sets="16" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">16</button>
+            <button type="button" data-train-sets="20" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">20</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <h2 class="text-base font-bold mb-4">本月各部位組數</h2>
+        <div id="trainMonthChart" class="space-y-3"></div>
+      </div>
+
+      <div id="trainList" class="space-y-2"></div>
+      <p id="trainEmpty" class="text-center text-ios-gray text-sm py-8 hidden">本月尚無訓練紀錄</p>
+    </section>
   </main>
 
   <!-- Bottom Tab Bar -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-gray-200/60 safe-bottom">
     <div class="flex max-w-lg mx-auto">
-      <button data-tab="finance" class="tab-btn flex-1 flex flex-col items-center py-2 pt-2.5 text-ios-blue active:scale-95 transition-transform">
-        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/></svg>
-        <span class="text-[10px] font-medium mt-0.5">記帳</span>
+      <button data-tab="finance" class="tab-btn flex-1 flex flex-col items-center py-1.5 pt-2 text-ios-blue active:scale-95 transition-transform">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/></svg>
+        <span class="text-[9px] font-medium mt-0.5">記帳</span>
       </button>
-      <button data-tab="diet" class="tab-btn flex-1 flex flex-col items-center py-2 pt-2.5 text-ios-gray active:scale-95 transition-transform">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-        <span class="text-[10px] font-medium mt-0.5">飲控</span>
+      <button data-tab="diet" class="tab-btn flex-1 flex flex-col items-center py-1.5 pt-2 text-ios-gray active:scale-95 transition-transform">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        <span class="text-[9px] font-medium mt-0.5">飲控</span>
       </button>
-      <button data-tab="sleep" class="tab-btn flex-1 flex flex-col items-center py-2 pt-2.5 text-ios-gray active:scale-95 transition-transform">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-        <span class="text-[10px] font-medium mt-0.5">睡眠</span>
+      <button data-tab="train" class="tab-btn flex-1 flex flex-col items-center py-1.5 pt-2 text-ios-gray active:scale-95 transition-transform">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 8h4v12H4V8zm6-4h4v16h-4V4zm6 6h4v10h-4V10z"/></svg>
+        <span class="text-[9px] font-medium mt-0.5">訓練</span>
+      </button>
+      <button data-tab="sleep" class="tab-btn flex-1 flex flex-col items-center py-1.5 pt-2 text-ios-gray active:scale-95 transition-transform">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        <span class="text-[9px] font-medium mt-0.5">睡眠</span>
       </button>
     </div>
   </nav>
@@ -713,47 +760,62 @@
     const DEFAULT_SLEEP_TARGET = 8;
     const SLEEP_DEBT_DAYS = 7;
     const DEFAULT_PHOTO_RETENTION_DAYS = 3;
-    const FOOD_CATEGORIES = ['全部', '外食', '超商', '飲料', '原型'];
+    const FOOD_CATEGORIES = ['全部', '健身', '超商', '外食', '飲料', '原型'];
     const FOOD_LIBRARY = [
+      { name: '水煮雞胸 150g', calories: 248, carbs: 0, protein: 46, fat: 5, cat: '健身' },
+      { name: '水煮雞胸 200g', calories: 330, carbs: 0, protein: 62, fat: 7, cat: '健身' },
+      { name: '舒肥雞胸 1包', calories: 125, carbs: 2, protein: 24, fat: 2, cat: '健身' },
+      { name: '雞胸便當', calories: 520, carbs: 55, protein: 45, fat: 10, cat: '健身' },
+      { name: '乳清蛋白 1匙', calories: 120, carbs: 3, protein: 24, fat: 1, cat: '健身' },
+      { name: '乳清蛋白 2匙', calories: 240, carbs: 6, protein: 48, fat: 2, cat: '健身' },
+      { name: '燕麥片 50g', calories: 190, carbs: 32, protein: 7, fat: 4, cat: '健身' },
+      { name: '燕麥+蛋白', calories: 310, carbs: 35, protein: 31, fat: 5, cat: '健身' },
+      { name: '糙飯 一碗', calories: 230, carbs: 48, protein: 5, fat: 2, cat: '健身' },
+      { name: '白飯 一碗', calories: 280, carbs: 62, protein: 5, fat: 0, cat: '健身' },
+      { name: '地瓜 中等', calories: 180, carbs: 41, protein: 2, fat: 0, cat: '健身' },
+      { name: '鮭魚 100g', calories: 208, carbs: 0, protein: 20, fat: 13, cat: '健身' },
+      { name: '牛排 150g', calories: 280, carbs: 0, protein: 38, fat: 14, cat: '健身' },
+      { name: '鮪魚罐頭', calories: 190, carbs: 0, protein: 42, fat: 1, cat: '健身' },
+      { name: '零脂希臘優格', calories: 100, carbs: 6, protein: 17, fat: 0, cat: '健身' },
+      { name: '雞蛋 3顆', calories: 210, carbs: 2, protein: 18, fat: 15, cat: '健身' },
+      { name: '全麥吐司 2片', calories: 160, carbs: 28, protein: 8, fat: 2, cat: '健身' },
+      { name: '花生醬 1匙', calories: 95, carbs: 3, protein: 4, fat: 8, cat: '健身' },
+      { name: '能量棒', calories: 200, carbs: 22, protein: 10, fat: 8, cat: '健身' },
+      { name: '沙拉雞胸', calories: 380, carbs: 18, protein: 42, fat: 14, cat: '健身' },
+      { name: '茶葉蛋 2顆', calories: 150, carbs: 2, protein: 12, fat: 10, cat: '超商' },
+      { name: '茶葉蛋', calories: 75, carbs: 1, protein: 6, fat: 5, cat: '超商' },
+      { name: '蛋白質飲', calories: 200, carbs: 8, protein: 30, fat: 4, cat: '超商' },
+      { name: '御飯糰', calories: 185, carbs: 38, protein: 4, fat: 2, cat: '超商' },
+      { name: '關東煮 5樣', calories: 280, carbs: 22, protein: 18, fat: 10, cat: '超商' },
+      { name: '沙拉', calories: 220, carbs: 12, protein: 8, fat: 16, cat: '超商' },
       { name: '滷肉飯', calories: 550, carbs: 65, protein: 18, fat: 22, cat: '外食' },
       { name: '雞腿便當', calories: 780, carbs: 85, protein: 32, fat: 28, cat: '外食' },
-      { name: '排骨便當', calories: 820, carbs: 88, protein: 30, fat: 32, cat: '外食' },
       { name: '牛肉麵', calories: 650, carbs: 72, protein: 35, fat: 22, cat: '外食' },
       { name: '乾麵', calories: 480, carbs: 68, protein: 14, fat: 16, cat: '外食' },
-      { name: '水餃 10顆', calories: 420, carbs: 48, protein: 16, fat: 16, cat: '外食' },
-      { name: '鍋貼 10顆', calories: 460, carbs: 42, protein: 18, fat: 22, cat: '外食' },
       { name: '蛋餅', calories: 320, carbs: 28, protein: 12, fat: 18, cat: '外食' },
-      { name: '飯糰', calories: 280, carbs: 42, protein: 8, fat: 8, cat: '外食' },
-      { name: '蘿蔔糕 3片', calories: 350, carbs: 45, protein: 8, fat: 14, cat: '外食' },
-      { name: '炒飯', calories: 620, carbs: 78, protein: 16, fat: 24, cat: '外食' },
-      { name: '義大利麵', calories: 580, carbs: 72, protein: 18, fat: 20, cat: '外食' },
-      { name: '漢堡套餐', calories: 950, carbs: 95, protein: 28, fat: 48, cat: '外食' },
-      { name: '炸雞排', calories: 520, carbs: 28, protein: 32, fat: 32, cat: '外食' },
-      { name: '鹹酥雞', calories: 450, carbs: 22, protein: 28, fat: 28, cat: '外食' },
-      { name: '火鍋套餐', calories: 880, carbs: 55, protein: 48, fat: 48, cat: '外食' },
-      { name: '沙拉雞胸', calories: 380, carbs: 18, protein: 42, fat: 14, cat: '外食' },
-      { name: '珍珠奶茶 中杯', calories: 380, carbs: 62, protein: 2, fat: 12, cat: '飲料' },
+      { name: '微糖烏龍茶', calories: 45, carbs: 11, protein: 0, fat: 0, cat: '飲料' },
+      { name: '微糖綠茶', calories: 40, carbs: 10, protein: 0, fat: 0, cat: '飲料' },
+      { name: '無糖茶', calories: 5, carbs: 1, protein: 0, fat: 0, cat: '飲料' },
       { name: '美式咖啡', calories: 15, carbs: 2, protein: 1, fat: 0, cat: '飲料' },
       { name: '拿鐵 中杯', calories: 180, carbs: 14, protein: 8, fat: 9, cat: '飲料' },
-      { name: '無糖茶', calories: 5, carbs: 1, protein: 0, fat: 0, cat: '飲料' },
-      { name: '可樂 罐', calories: 140, carbs: 35, protein: 0, fat: 0, cat: '飲料' },
-      { name: '運動飲料', calories: 120, carbs: 30, protein: 0, fat: 0, cat: '飲料' },
-      { name: '茶葉蛋', calories: 75, carbs: 1, protein: 6, fat: 5, cat: '超商' },
-      { name: '御飯糰', calories: 185, carbs: 38, protein: 4, fat: 2, cat: '超商' },
-      { name: '三明治', calories: 320, carbs: 32, protein: 14, fat: 14, cat: '超商' },
-      { name: '沙拉', calories: 220, carbs: 12, protein: 8, fat: 16, cat: '超商' },
-      { name: '義大利麵盒', calories: 480, carbs: 58, protein: 16, fat: 18, cat: '超商' },
-      { name: '關東煮 5樣', calories: 280, carbs: 22, protein: 18, fat: 10, cat: '超商' },
-      { name: '泡麵', calories: 480, carbs: 62, protein: 10, fat: 20, cat: '超商' },
-      { name: '蛋白質飲', calories: 200, carbs: 8, protein: 30, fat: 4, cat: '超商' },
       { name: '香蕉', calories: 105, carbs: 27, protein: 1, fat: 0, cat: '原型' },
       { name: '蘋果', calories: 95, carbs: 25, protein: 0, fat: 0, cat: '原型' },
       { name: '雞胸肉 100g', calories: 165, carbs: 0, protein: 31, fat: 4, cat: '原型' },
       { name: '雞蛋 2顆', calories: 140, carbs: 1, protein: 12, fat: 10, cat: '原型' },
-      { name: '白飯 一碗', calories: 280, carbs: 62, protein: 5, fat: 0, cat: '原型' },
-      { name: '燕麥奶 250ml', calories: 120, carbs: 16, protein: 3, fat: 5, cat: '原型' },
       { name: '希臘優格', calories: 150, carbs: 8, protein: 15, fat: 6, cat: '原型' },
-      { name: '堅果 30g', calories: 180, carbs: 6, protein: 5, fat: 16, cat: '原型' }
+      { name: '堅果 30g', calories: 180, carbs: 6, protein: 5, fat: 16, cat: '原型' },
+      { name: '酪梨 半顆', calories: 160, carbs: 9, protein: 2, fat: 15, cat: '原型' }
+    ];
+    const TRAINING_PARTS = [
+      { id: 'chest', label: '胸', recoveryH: 48, color: 'bg-red-100 text-red-600' },
+      { id: 'back', label: '背', recoveryH: 48, color: 'bg-blue-100 text-blue-600' },
+      { id: 'shoulders', label: '肩', recoveryH: 48, color: 'bg-orange-100 text-orange-600' },
+      { id: 'biceps', label: '二頭', recoveryH: 36, color: 'bg-purple-100 text-purple-600' },
+      { id: 'triceps', label: '三頭', recoveryH: 36, color: 'bg-pink-100 text-pink-600' },
+      { id: 'legs', label: '腿', recoveryH: 72, color: 'bg-green-100 text-green-600' },
+      { id: 'glutes', label: '臀', recoveryH: 48, color: 'bg-yellow-100 text-yellow-700' },
+      { id: 'core', label: '核心', recoveryH: 24, color: 'bg-teal-100 text-teal-600' },
+      { id: 'calves', label: '小腿', recoveryH: 24, color: 'bg-gray-100 text-gray-600' }
     ];
     let activeFoodCategory = '全部';
     const CATEGORIES = ['食', '衣', '住', '行', '育', '樂', '其他'];
@@ -772,7 +834,9 @@
     let isSyncing = false;
     let editingSubscriptionId = null;
     let qrScannerStream = null;
-    let qrScanFrameId = null;
+    let trainYear = new Date().getFullYear();
+    let trainMonth = new Date().getMonth();
+    let pendingTrainPart = null;
 
     // ─── Utilities ───
 
@@ -794,6 +858,7 @@
           targetHours: DEFAULT_SLEEP_TARGET,
           records: []
         },
+        training: { records: [] },
         calculator: { savedAt: null }
       };
     }
@@ -1159,7 +1224,28 @@
         calculator: newerIsLocal && local.calculator?.savedAt
           ? local.calculator
           : (remote.calculator?.savedAt ? remote.calculator : local.calculator || { savedAt: null }),
-        sleep: mergeSleepData(remote.sleep, local.sleep, newerIsLocal)
+        sleep: mergeSleepData(remote.sleep, local.sleep, newerIsLocal),
+        training: mergeTrainingData(remote.training, local.training)
+      };
+    }
+
+    function mergeTrainingRecords(remote, local) {
+      const byId = new Map();
+      [...(remote || []), ...(local || [])].forEach(r => {
+        if (!r?.id) return;
+        byId.set(r.id, r);
+      });
+      return Array.from(byId.values()).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    }
+
+    function mergeTrainingData(remoteTraining, localTraining) {
+      const remote = remoteTraining || {};
+      const local = localTraining || {};
+      const remoteRec = Array.isArray(remote.records) ? remote.records : [];
+      const localRec = Array.isArray(local.records) ? local.records : [];
+      return {
+        records: remoteRec.length && localRec.length ? mergeTrainingRecords(remoteRec, localRec)
+          : (localRec.length ? localRec : remoteRec)
       };
     }
 
@@ -1984,10 +2070,155 @@
       }).join('');
     }
 
+    // ─── Render: Training ───
+
+    function getPartDef(partId) {
+      return TRAINING_PARTS.find(p => p.id === partId) || { id: partId, label: partId, recoveryH: 48, color: 'bg-gray-100 text-gray-600' };
+    }
+
+    function getMonthTrainingRecords() {
+      return (db.training?.records || []).filter(r => {
+        const d = new Date(r.date);
+        return d.getFullYear() === trainYear && d.getMonth() === trainMonth;
+      }).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
+    }
+
+    function calcRecoveryNeededH(sets, baseH) {
+      let extra = 0;
+      if (sets >= 20) extra = 24;
+      else if (sets >= 15) extra = 12;
+      else if (sets >= 12) extra = 6;
+      return baseH + extra;
+    }
+
+    function getPartRecoveryStatus(partId) {
+      const part = getPartDef(partId);
+      const records = (db.training?.records || [])
+        .filter(r => r.part === partId)
+        .sort((a, b) => {
+          const da = (a.date || '') + (a.createdAt || '');
+          const db_ = (b.date || '') + (b.createdAt || '');
+          return db_.localeCompare(da);
+        });
+      if (!records.length) return { ready: true, label: '可訓練', sub: '尚無紀錄', hoursLeft: 0 };
+      const last = records[0];
+      const trainedAt = new Date((last.date || todayStr()) + 'T' + (last.time || '18:00') + ':00');
+      const needH = calcRecoveryNeededH(last.sets || 0, part.recoveryH);
+      const recoverEnd = trainedAt.getTime() + needH * 3600000;
+      const now = Date.now();
+      if (now >= recoverEnd) return { ready: true, label: '可訓練', sub: `已休息 ${Math.floor((now - recoverEnd) / 3600000)}h+`, hoursLeft: 0 };
+      const hoursLeft = Math.ceil((recoverEnd - now) / 3600000);
+      return { ready: false, label: '恢復中', sub: `約 ${hoursLeft}h 後`, hoursLeft };
+    }
+
+    function getMonthSetsByPart() {
+      const totals = {};
+      TRAINING_PARTS.forEach(p => { totals[p.id] = 0; });
+      getMonthTrainingRecords().forEach(r => {
+        if (totals[r.part] !== undefined) totals[r.part] += r.sets || 0;
+      });
+      return totals;
+    }
+
+    async function quickAddTraining(partId, sets) {
+      const part = getPartDef(partId);
+      const status = getPartRecoveryStatus(partId);
+      if (!status.ready) {
+        if (!confirm(`${part.label} 仍在恢復中（${status.sub}），確定要記錄訓練？`)) return;
+      }
+      const now = new Date();
+      const ok = await mutateAndSync(() => {
+        if (!db.training) db.training = { records: [] };
+        db.training.records.push({
+          id: uid(),
+          date: todayStr(),
+          time: pad2(now.getHours()) + ':' + pad2(now.getMinutes()),
+          part: partId,
+          sets,
+          createdAt: now.toISOString()
+        });
+      });
+      pendingTrainPart = null;
+      document.getElementById('trainSetsRow').classList.add('hidden');
+      showToast(ok ? `${part.label} ${sets} 組已記錄` : '已存本機，同步失敗', !ok);
+    }
+
+    function renderTraining() {
+      if (!db.training) db.training = { records: [] };
+      document.getElementById('trainMonthLabel').textContent = monthLabel(trainYear, trainMonth);
+
+      const recoveryGrid = document.getElementById('recoveryGrid');
+      recoveryGrid.innerHTML = TRAINING_PARTS.map(p => {
+        const st = getPartRecoveryStatus(p.id);
+        return `
+        <div class="rounded-2xl p-3 text-center ${st.ready ? 'bg-green-50 border border-green-100' : 'bg-orange-50 border border-orange-200'}">
+          <div class="w-8 h-8 rounded-full ${p.color} flex items-center justify-center text-xs font-bold mx-auto mb-1">${p.label}</div>
+          <p class="text-[11px] font-bold ${st.ready ? 'text-ios-green' : 'text-orange-600'}">${st.label}</p>
+          <p class="text-[10px] text-ios-gray mt-0.5">${st.sub}</p>
+        </div>`;
+      }).join('');
+
+      const partGrid = document.getElementById('trainPartGrid');
+      partGrid.innerHTML = TRAINING_PARTS.map(p => {
+        const st = getPartRecoveryStatus(p.id);
+        const active = pendingTrainPart === p.id;
+        return `
+        <button type="button" data-train-part="${p.id}" class="rounded-2xl p-3 text-center border-2 active:scale-95 transition-transform ${active ? 'border-ios-blue bg-blue-50' : 'border-transparent bg-ios-bg'} ${!st.ready ? 'opacity-80' : ''}">
+          <div class="w-9 h-9 rounded-full ${p.color} flex items-center justify-center text-sm font-bold mx-auto">${p.label}</div>
+        </button>`;
+      }).join('');
+
+      const monthSets = getMonthSetsByPart();
+      const maxSets = Math.max(1, ...Object.values(monthSets));
+      const chart = document.getElementById('trainMonthChart');
+      chart.innerHTML = TRAINING_PARTS.map(p => {
+        const sets = monthSets[p.id] || 0;
+        const pct = sets ? Math.round(sets / maxSets * 100) : 0;
+        return `
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="font-semibold">${p.label}</span>
+            <span class="text-ios-gray">${sets} 組</span>
+          </div>
+          <div class="h-2.5 bg-ios-bg rounded-full overflow-hidden">
+            <div class="macro-bar h-full bg-ios-blue rounded-full" style="width:${pct}%"></div>
+          </div>
+        </div>`;
+      }).join('');
+
+      const records = getMonthTrainingRecords();
+      const list = document.getElementById('trainList');
+      const empty = document.getElementById('trainEmpty');
+      if (!records.length) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      list.innerHTML = records.map(r => {
+        const p = getPartDef(r.part);
+        return `
+        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full ${p.color} flex items-center justify-center text-sm font-bold">${p.label}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-center">
+              <span class="font-semibold text-sm">${r.sets} 組</span>
+              <span class="text-xs text-ios-gray">${r.date}</span>
+            </div>
+            <p class="text-xs text-ios-gray mt-0.5">${r.time || ''} 紀錄</p>
+          </div>
+          <button data-delete-train="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>`;
+      }).join('');
+    }
+
     function renderAll() {
       renderFinance();
       renderDiet();
       renderSleep();
+      renderTraining();
     }
 
     // ─── Tab Navigation ───
@@ -1995,8 +2226,8 @@
     function switchTab(tab) {
       currentTab = tab;
       document.querySelectorAll('.tab-panel').forEach(el => el.classList.add('hidden'));
-      const panelMap = { finance: 'tabFinance', diet: 'tabDiet', sleep: 'tabSleep' };
-      const titleMap = { finance: '記帳', diet: '飲控', sleep: '睡眠' };
+      const panelMap = { finance: 'tabFinance', diet: 'tabDiet', sleep: 'tabSleep', train: 'tabTrain' };
+      const titleMap = { finance: '記帳', diet: '飲控', sleep: '睡眠', train: '訓練' };
       document.getElementById(panelMap[tab] || 'tabFinance').classList.remove('hidden');
       document.getElementById('pageTitle').textContent = titleMap[tab] || '記帳';
       document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -2401,6 +2632,42 @@
         if (!confirm('確定刪除此筆睡眠紀錄？')) return;
         await mutateAndSync(() => {
           db.sleep.records = db.sleep.records.filter(r => r.id !== id);
+        });
+        showToast('已刪除');
+      });
+
+      document.getElementById('btnPrevTrainMonth').addEventListener('click', () => {
+        trainMonth--;
+        if (trainMonth < 0) { trainMonth = 11; trainYear--; }
+        renderTraining();
+      });
+      document.getElementById('btnNextTrainMonth').addEventListener('click', () => {
+        trainMonth++;
+        if (trainMonth > 11) { trainMonth = 0; trainYear++; }
+        renderTraining();
+      });
+      document.getElementById('trainPartGrid').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-train-part]');
+        if (!btn) return;
+        pendingTrainPart = btn.dataset.trainPart;
+        const part = getPartDef(pendingTrainPart);
+        document.getElementById('trainSelectedPartLabel').textContent = part.label;
+        document.getElementById('trainSetsRow').classList.remove('hidden');
+        renderTraining();
+      });
+      document.querySelectorAll('.train-set-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!pendingTrainPart) { showToast('請先選擇部位', true); return; }
+          await quickAddTraining(pendingTrainPart, parseInt(btn.dataset.trainSets, 10));
+        });
+      });
+      document.getElementById('trainList').addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-delete-train]');
+        if (!btn) return;
+        const id = btn.dataset.deleteTrain;
+        if (!confirm('確定刪除此筆訓練紀錄？')) return;
+        await mutateAndSync(() => {
+          db.training.records = db.training.records.filter(r => r.id !== id);
         });
         showToast('已刪除');
       });

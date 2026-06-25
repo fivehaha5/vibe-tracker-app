@@ -189,6 +189,29 @@
         </div>
       </div>
 
+      <!-- Daily Summary -->
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <h2 class="text-base font-bold mb-1">每日小結</h2>
+        <p id="financeTodayDateLabel" class="text-xs text-ios-gray mb-4"></p>
+        <div class="grid grid-cols-3 gap-3 mb-4">
+          <div class="bg-ios-bg rounded-2xl p-3 text-center">
+            <p class="text-xs text-ios-gray">今日收入</p>
+            <p id="financeTodayIncome" class="text-lg font-bold text-ios-green">$0</p>
+          </div>
+          <div class="bg-ios-bg rounded-2xl p-3 text-center">
+            <p class="text-xs text-ios-gray">今日支出</p>
+            <p id="financeTodayExpense" class="text-lg font-bold text-ios-red">$0</p>
+          </div>
+          <div class="bg-ios-bg rounded-2xl p-3 text-center">
+            <p class="text-xs text-ios-gray">今日盈餘</p>
+            <p id="financeTodaySurplus" class="text-lg font-bold text-ios-blue">$0</p>
+          </div>
+        </div>
+        <div id="financeTodayCategories" class="space-y-2 hidden"></div>
+        <p id="financeTodayEmpty" class="text-center text-ios-gray text-sm py-2">今日尚無紀錄</p>
+        <p id="financeTodayCount" class="text-xs text-ios-gray text-center mt-2 hidden"></p>
+      </div>
+
       <!-- Subscription Reminders -->
       <div id="subAlertBanner" class="hidden bg-orange-50 border border-orange-200 rounded-2xl p-4">
         <div class="flex items-start gap-2">
@@ -873,7 +896,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.1.0';
+    const APP_VERSION = '1.2.0';
     const SETTINGS_KEY = 'vibe_tracker_settings';
     const GH_USER_KEY = 'vibe_gh_user';
     const GH_REPO_KEY = 'vibe_gh_repo';
@@ -2024,8 +2047,83 @@
       }).sort((a, b) => new Date(b.date) - new Date(a.date));
     }
 
+    function getTodayFinanceRecords() {
+      const today = todayStr();
+      return db.finance.records.filter(r => r.date === today);
+    }
+
+    function renderDailySummary() {
+      const todayRecords = getTodayFinanceRecords();
+      document.getElementById('financeTodayDateLabel').textContent = new Date().toLocaleDateString('zh-TW', {
+        year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+      });
+
+      let income = 0;
+      let expense = 0;
+      const expenseByCat = {};
+      todayRecords.forEach(r => {
+        if (r.type === 'income') income += r.amount;
+        else {
+          expense += r.amount;
+          expenseByCat[r.category] = (expenseByCat[r.category] || 0) + r.amount;
+        }
+      });
+
+      document.getElementById('financeTodayIncome').textContent = formatMoney(income);
+      document.getElementById('financeTodayExpense').textContent = formatMoney(expense);
+      const surplus = income - expense;
+      const surplusEl = document.getElementById('financeTodaySurplus');
+      surplusEl.textContent = (surplus >= 0 ? '' : '-') + formatMoney(Math.abs(surplus));
+      surplusEl.className = 'text-lg font-bold ' + (surplus >= 0 ? 'text-ios-blue' : 'text-ios-red');
+
+      const emptyEl = document.getElementById('financeTodayEmpty');
+      const catEl = document.getElementById('financeTodayCategories');
+      const countEl = document.getElementById('financeTodayCount');
+
+      if (todayRecords.length === 0) {
+        emptyEl.classList.remove('hidden');
+        catEl.classList.add('hidden');
+        countEl.classList.add('hidden');
+        catEl.innerHTML = '';
+        return;
+      }
+
+      emptyEl.classList.add('hidden');
+      const cats = Object.entries(expenseByCat).sort((a, b) => b[1] - a[1]);
+      if (cats.length > 0) {
+        catEl.classList.remove('hidden');
+        const maxAmt = cats[0][1];
+        catEl.innerHTML = `
+          <p class="text-xs text-ios-gray font-medium mb-1">今日支出分類</p>
+          ${cats.map(([cat, amt]) => `
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-medium">${cat}</span>
+                <span class="text-ios-gray">${formatMoney(amt)}</span>
+              </div>
+              <div class="h-2 bg-ios-bg rounded-full overflow-hidden">
+                <div class="macro-bar h-full bg-ios-red/70 rounded-full" style="width:${Math.round(amt / maxAmt * 100)}%"></div>
+              </div>
+            </div>
+          `).join('')}
+        `;
+      } else {
+        catEl.classList.add('hidden');
+        catEl.innerHTML = '';
+      }
+
+      const incomeCount = todayRecords.filter(r => r.type === 'income').length;
+      const expenseCount = todayRecords.filter(r => r.type === 'expense').length;
+      const parts = [];
+      if (incomeCount) parts.push(`${incomeCount} 筆收入`);
+      if (expenseCount) parts.push(`${expenseCount} 筆支出`);
+      countEl.textContent = '今日共 ' + parts.join(' · ');
+      countEl.classList.remove('hidden');
+    }
+
     function renderFinance() {
       document.getElementById('currentMonthLabel').textContent = monthLabel(currentYear, currentMonth);
+      renderDailySummary();
       renderSubscriptions();
       renderCarrier();
 

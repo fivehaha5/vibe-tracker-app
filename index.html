@@ -325,6 +325,38 @@
         </div>
       </div>
 
+      <!-- Quick Food Log -->
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <h2 class="text-base font-bold mb-1">快速紀錄</h2>
+        <p class="text-xs text-ios-gray mb-3">點一下即加入，不用查營養標籤</p>
+        <input id="foodSearch" type="search" placeholder="搜尋：滷肉飯、雞便當、珍珠奶茶…" class="w-full bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30 mb-3">
+        <div id="foodCategoryPills" class="flex gap-2 overflow-x-auto scrollbar-hide pb-2 mb-3"></div>
+        <div id="recentFoodChips" class="hidden mb-3">
+          <p class="text-xs text-ios-gray mb-2">最近常吃</p>
+          <div id="recentFoodList" class="flex gap-2 overflow-x-auto scrollbar-hide"></div>
+        </div>
+        <div id="foodLibraryList" class="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto"></div>
+        <p class="text-xs text-ios-gray mt-3 mb-2">不知道熱量？選一個大概</p>
+        <div class="grid grid-cols-4 gap-2">
+          <button data-estimate="300" class="estimate-btn bg-ios-bg rounded-xl py-2.5 text-center active:scale-95 transition-transform">
+            <span class="text-sm font-bold text-ios-blue">300</span>
+            <span class="block text-[10px] text-ios-gray">輕食</span>
+          </button>
+          <button data-estimate="500" class="estimate-btn bg-ios-bg rounded-xl py-2.5 text-center active:scale-95 transition-transform">
+            <span class="text-sm font-bold text-ios-blue">500</span>
+            <span class="block text-[10px] text-ios-gray">點心</span>
+          </button>
+          <button data-estimate="700" class="estimate-btn bg-ios-bg rounded-xl py-2.5 text-center active:scale-95 transition-transform">
+            <span class="text-sm font-bold text-ios-blue">700</span>
+            <span class="block text-[10px] text-ios-gray">正餐</span>
+          </button>
+          <button data-estimate="900" class="estimate-btn bg-ios-bg rounded-xl py-2.5 text-center active:scale-95 transition-transform">
+            <span class="text-sm font-bold text-ios-blue">900</span>
+            <span class="block text-[10px] text-ios-gray">大餐</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Photo Setting -->
       <div class="bg-white rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between">
         <div>
@@ -345,12 +377,64 @@
           拍照紀錄飲食
           <input id="cameraInput" type="file" accept="image/*" capture="environment" class="hidden">
         </label>
-        <button id="btnAddFoodManual" class="flex-1 bg-white text-ios-blue font-semibold py-3 rounded-2xl shadow-sm border border-ios-blue/20 active:scale-95 transition-transform">手動新增</button>
+        <button id="btnAddFoodManual" class="flex-1 bg-white text-ios-blue font-semibold py-3 rounded-2xl shadow-sm border border-ios-blue/20 active:scale-95 transition-transform">自訂紀錄</button>
       </div>
 
       <!-- Diet Records -->
       <div id="dietList" class="space-y-2"></div>
       <p id="dietEmpty" class="text-center text-ios-gray text-sm py-8 hidden">今日尚無飲食紀錄</p>
+    </section>
+
+    <!-- ===== SLEEP TAB ===== -->
+    <section id="tabSleep" class="tab-panel hidden space-y-4">
+
+      <!-- Sleep Debt Dashboard -->
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-bold">睡眠欠債</h2>
+          <select id="sleepTargetSelect" class="bg-ios-bg rounded-xl px-3 py-1.5 text-sm border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+            <option value="7">目標 7h</option>
+            <option value="8" selected>目標 8h</option>
+            <option value="9">目標 9h</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div class="bg-ios-bg rounded-2xl p-4 text-center">
+            <p class="text-xs text-ios-gray mb-1">本週累計欠債</p>
+            <p id="sleepDebtTotal" class="text-3xl font-bold text-ios-red">0h</p>
+            <p class="text-[10px] text-ios-gray mt-1">近 7 天不足時數加總</p>
+          </div>
+          <div class="bg-ios-bg rounded-2xl p-4 text-center">
+            <p class="text-xs text-ios-gray mb-1">昨晚睡眠</p>
+            <p id="sleepLastNight" class="text-3xl font-bold text-indigo-600">—</p>
+            <p id="sleepLastNightSub" class="text-[10px] text-ios-gray mt-1">尚未打卡</p>
+          </div>
+        </div>
+        <div class="mb-2 flex justify-between text-xs">
+          <span class="text-ios-gray">本週平均</span>
+          <span id="sleepWeekAvg" class="font-semibold">—</span>
+        </div>
+        <div class="h-3 bg-ios-bg rounded-full overflow-hidden">
+          <div id="sleepWeekAvgBar" class="macro-bar h-full bg-indigo-500 rounded-full" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Quick Check-in -->
+      <button id="btnAddSleep" class="w-full bg-indigo-600 text-white font-semibold py-4 rounded-2xl shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        記錄睡眠
+      </button>
+
+      <p class="text-xs text-ios-gray text-center -mt-2">起床後點一下，輸入就寢與起床時間</p>
+
+      <!-- Week Calendar -->
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <h2 class="text-base font-bold mb-4">本週睡眠</h2>
+        <div id="sleepWeekChart" class="space-y-3"></div>
+      </div>
+
+      <div id="sleepList" class="space-y-2"></div>
+      <p id="sleepEmpty" class="text-center text-ios-gray text-sm py-8 hidden">尚無睡眠紀錄</p>
     </section>
   </main>
 
@@ -364,6 +448,10 @@
       <button data-tab="diet" class="tab-btn flex-1 flex flex-col items-center py-2 pt-2.5 text-ios-gray active:scale-95 transition-transform">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
         <span class="text-[10px] font-medium mt-0.5">飲控</span>
+      </button>
+      <button data-tab="sleep" class="tab-btn flex-1 flex flex-col items-center py-2 pt-2.5 text-ios-gray active:scale-95 transition-transform">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        <span class="text-[10px] font-medium mt-0.5">睡眠</span>
       </button>
     </div>
   </nav>
@@ -531,35 +619,80 @@
     <div class="absolute inset-0 bg-black/40" data-close="modalDiet"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom max-h-[90vh] overflow-y-auto">
       <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
-      <h2 class="text-lg font-bold mb-4">新增飲食紀錄</h2>
+      <h2 id="dietModalTitle" class="text-lg font-bold mb-4">自訂飲食紀錄</h2>
       <div id="dietPreviewWrap" class="hidden mb-4">
         <img id="dietPreview" class="w-full h-40 object-cover rounded-2xl" alt="預覽">
       </div>
       <div class="space-y-3">
         <div>
-          <label class="text-xs text-ios-gray">名稱</label>
-          <input id="dietName" type="text" placeholder="例如：雞胸沙拉" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          <label class="text-xs text-ios-gray">吃了什麼</label>
+          <input id="dietName" type="text" placeholder="例如：公司便當、路邊滷味" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs text-ios-gray">熱量 (kcal)</label>
-            <input id="dietCalories" type="number" inputmode="numeric" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        <div>
+          <label class="text-xs text-ios-gray">熱量 (kcal)</label>
+          <input id="dietCalories" type="number" inputmode="numeric" placeholder="不知道可留空，系統會估算" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          <div class="flex gap-2 mt-2">
+            <button type="button" data-fill-cal="400" class="flex-1 text-xs bg-ios-bg rounded-lg py-1.5 text-ios-blue font-medium active:scale-95 transition-transform">~400</button>
+            <button type="button" data-fill-cal="600" class="flex-1 text-xs bg-ios-bg rounded-lg py-1.5 text-ios-blue font-medium active:scale-95 transition-transform">~600</button>
+            <button type="button" data-fill-cal="800" class="flex-1 text-xs bg-ios-bg rounded-lg py-1.5 text-ios-blue font-medium active:scale-95 transition-transform">~800</button>
           </div>
+        </div>
+        <button type="button" id="btnToggleDietDetail" class="text-xs text-ios-blue font-semibold active:scale-95 transition-transform">▸ 展開詳細營養素（選填）</button>
+        <div id="dietDetailFields" class="hidden grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs text-ios-gray">碳水 (g)</label>
-            <input id="dietCarbs" type="number" inputmode="decimal" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+            <input id="dietCarbs" type="number" inputmode="decimal" placeholder="自動估算" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
           </div>
           <div>
             <label class="text-xs text-ios-gray">蛋白質 (g)</label>
-            <input id="dietProtein" type="number" inputmode="decimal" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+            <input id="dietProtein" type="number" inputmode="decimal" placeholder="自動估算" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
           </div>
-          <div>
+          <div class="col-span-2">
             <label class="text-xs text-ios-gray">脂肪 (g)</label>
-            <input id="dietFat" type="number" inputmode="decimal" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+            <input id="dietFat" type="number" inputmode="decimal" placeholder="自動估算" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
           </div>
         </div>
+        <p class="text-[11px] text-ios-gray">只填名稱也 OK，營養素會依熱量自動估算</p>
       </div>
       <button id="btnSaveDiet" class="w-full mt-5 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存</button>
+    </div>
+  </div>
+
+  <!-- Sleep Entry Modal -->
+  <div id="modalSleep" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalSleep"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom">
+      <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
+      <h2 class="text-lg font-bold mb-1">記錄睡眠</h2>
+      <p class="text-xs text-ios-gray mb-4">以起床日期為準（例如今早起床 → 選今天）</p>
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-ios-gray">起床日期</label>
+          <input id="sleepDate" type="date" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-ios-gray">就寢時間</label>
+            <input id="sleepBed" type="time" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+          <div>
+            <label class="text-xs text-ios-gray">起床時間</label>
+            <input id="sleepWake" type="time" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+        </div>
+        <div>
+          <p class="text-xs text-ios-gray mb-2">或快速選擇睡眠時數</p>
+          <div class="grid grid-cols-5 gap-2">
+            <button type="button" data-sleep-hours="5" class="sleep-quick-h bg-ios-bg rounded-xl py-2 text-sm font-semibold text-indigo-600 active:scale-95 transition-transform">5h</button>
+            <button type="button" data-sleep-hours="6" class="sleep-quick-h bg-ios-bg rounded-xl py-2 text-sm font-semibold text-indigo-600 active:scale-95 transition-transform">6h</button>
+            <button type="button" data-sleep-hours="7" class="sleep-quick-h bg-ios-bg rounded-xl py-2 text-sm font-semibold text-indigo-600 active:scale-95 transition-transform">7h</button>
+            <button type="button" data-sleep-hours="8" class="sleep-quick-h bg-ios-bg rounded-xl py-2 text-sm font-semibold text-indigo-600 active:scale-95 transition-transform">8h</button>
+            <button type="button" data-sleep-hours="9" class="sleep-quick-h bg-ios-bg rounded-xl py-2 text-sm font-semibold text-indigo-600 active:scale-95 transition-transform">9h</button>
+          </div>
+        </div>
+        <p id="sleepDurationPreview" class="text-center text-sm font-semibold text-indigo-600">—</p>
+      </div>
+      <button id="btnSaveSleep" class="w-full mt-5 bg-indigo-600 text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存</button>
     </div>
   </div>
 
@@ -577,7 +710,51 @@
     const LOCAL_DB_KEY = 'vibe_tracker_db_cache';
     const CARRIER_KEY = 'vibe_carrier_backup';
     const DIET_PROFILE_KEY = 'vibe_diet_profile_backup';
-    const DEFAULT_PHOTO_RETENTION_DAYS = 3;
+    const DEFAULT_SLEEP_TARGET = 8;
+    const SLEEP_DEBT_DAYS = 7;
+    const FOOD_CATEGORIES = ['全部', '外食', '超商', '飲料', '原型'];
+    const FOOD_LIBRARY = [
+      { name: '滷肉飯', calories: 550, carbs: 65, protein: 18, fat: 22, cat: '外食' },
+      { name: '雞腿便當', calories: 780, carbs: 85, protein: 32, fat: 28, cat: '外食' },
+      { name: '排骨便當', calories: 820, carbs: 88, protein: 30, fat: 32, cat: '外食' },
+      { name: '牛肉麵', calories: 650, carbs: 72, protein: 35, fat: 22, cat: '外食' },
+      { name: '乾麵', calories: 480, carbs: 68, protein: 14, fat: 16, cat: '外食' },
+      { name: '水餃 10顆', calories: 420, carbs: 48, protein: 16, fat: 16, cat: '外食' },
+      { name: '鍋貼 10顆', calories: 460, carbs: 42, protein: 18, fat: 22, cat: '外食' },
+      { name: '蛋餅', calories: 320, carbs: 28, protein: 12, fat: 18, cat: '外食' },
+      { name: '飯糰', calories: 280, carbs: 42, protein: 8, fat: 8, cat: '外食' },
+      { name: '蘿蔔糕 3片', calories: 350, carbs: 45, protein: 8, fat: 14, cat: '外食' },
+      { name: '炒飯', calories: 620, carbs: 78, protein: 16, fat: 24, cat: '外食' },
+      { name: '義大利麵', calories: 580, carbs: 72, protein: 18, fat: 20, cat: '外食' },
+      { name: '漢堡套餐', calories: 950, carbs: 95, protein: 28, fat: 48, cat: '外食' },
+      { name: '炸雞排', calories: 520, carbs: 28, protein: 32, fat: 32, cat: '外食' },
+      { name: '鹹酥雞', calories: 450, carbs: 22, protein: 28, fat: 28, cat: '外食' },
+      { name: '火鍋套餐', calories: 880, carbs: 55, protein: 48, fat: 48, cat: '外食' },
+      { name: '沙拉雞胸', calories: 380, carbs: 18, protein: 42, fat: 14, cat: '外食' },
+      { name: '珍珠奶茶 中杯', calories: 380, carbs: 62, protein: 2, fat: 12, cat: '飲料' },
+      { name: '美式咖啡', calories: 15, carbs: 2, protein: 1, fat: 0, cat: '飲料' },
+      { name: '拿鐵 中杯', calories: 180, carbs: 14, protein: 8, fat: 9, cat: '飲料' },
+      { name: '無糖茶', calories: 5, carbs: 1, protein: 0, fat: 0, cat: '飲料' },
+      { name: '可樂 罐', calories: 140, carbs: 35, protein: 0, fat: 0, cat: '飲料' },
+      { name: '運動飲料', calories: 120, carbs: 30, protein: 0, fat: 0, cat: '飲料' },
+      { name: '茶葉蛋', calories: 75, carbs: 1, protein: 6, fat: 5, cat: '超商' },
+      { name: '御飯糰', calories: 185, carbs: 38, protein: 4, fat: 2, cat: '超商' },
+      { name: '三明治', calories: 320, carbs: 32, protein: 14, fat: 14, cat: '超商' },
+      { name: '沙拉', calories: 220, carbs: 12, protein: 8, fat: 16, cat: '超商' },
+      { name: '義大利麵盒', calories: 480, carbs: 58, protein: 16, fat: 18, cat: '超商' },
+      { name: '關東煮 5樣', calories: 280, carbs: 22, protein: 18, fat: 10, cat: '超商' },
+      { name: '泡麵', calories: 480, carbs: 62, protein: 10, fat: 20, cat: '超商' },
+      { name: '蛋白質飲', calories: 200, carbs: 8, protein: 30, fat: 4, cat: '超商' },
+      { name: '香蕉', calories: 105, carbs: 27, protein: 1, fat: 0, cat: '原型' },
+      { name: '蘋果', calories: 95, carbs: 25, protein: 0, fat: 0, cat: '原型' },
+      { name: '雞胸肉 100g', calories: 165, carbs: 0, protein: 31, fat: 4, cat: '原型' },
+      { name: '雞蛋 2顆', calories: 140, carbs: 1, protein: 12, fat: 10, cat: '原型' },
+      { name: '白飯 一碗', calories: 280, carbs: 62, protein: 5, fat: 0, cat: '原型' },
+      { name: '燕麥奶 250ml', calories: 120, carbs: 16, protein: 3, fat: 5, cat: '原型' },
+      { name: '希臘優格', calories: 150, carbs: 8, protein: 15, fat: 6, cat: '原型' },
+      { name: '堅果 30g', calories: 180, carbs: 6, protein: 5, fat: 16, cat: '原型' }
+    ];
+    let activeFoodCategory = '全部';
     const CATEGORIES = ['食', '衣', '住', '行', '育', '樂', '其他'];
     const MACRO_RATIOS = {
       bulk: { carbs: 5, protein: 2, fat: 3 },
@@ -611,6 +788,10 @@
           profile: null,
           records: [],
           photoRetentionDays: DEFAULT_PHOTO_RETENTION_DAYS
+        },
+        sleep: {
+          targetHours: DEFAULT_SLEEP_TARGET,
+          records: []
         },
         calculator: { savedAt: null }
       };
@@ -976,7 +1157,31 @@
         },
         calculator: newerIsLocal && local.calculator?.savedAt
           ? local.calculator
-          : (remote.calculator?.savedAt ? remote.calculator : local.calculator || { savedAt: null })
+          : (remote.calculator?.savedAt ? remote.calculator : local.calculator || { savedAt: null }),
+        sleep: mergeSleepData(remote.sleep, local.sleep, newerIsLocal)
+      };
+    }
+
+    function mergeSleepRecords(remote, local) {
+      const byDate = new Map();
+      [...(remote || []), ...(local || [])].forEach(r => {
+        if (!r?.date) return;
+        const prev = byDate.get(r.date);
+        if (!prev || (r.id || '') > (prev.id || '')) byDate.set(r.date, r);
+      });
+      return Array.from(byDate.values()).sort((a, b) => b.date.localeCompare(a.date));
+    }
+
+    function mergeSleepData(remoteSleep, localSleep, newerIsLocal) {
+      const remote = remoteSleep || {};
+      const local = localSleep || {};
+      const remoteRec = Array.isArray(remote.records) ? remote.records : [];
+      const localRec = Array.isArray(local.records) ? local.records : [];
+      return {
+        targetHours: typeof local.targetHours === 'number' ? local.targetHours
+          : (typeof remote.targetHours === 'number' ? remote.targetHours : DEFAULT_SLEEP_TARGET),
+        records: remoteRec.length && localRec.length ? mergeSleepRecords(remoteRec, localRec)
+          : (localRec.length ? localRec : remoteRec)
       };
     }
 
@@ -1377,6 +1582,112 @@
       return db.diet.records.filter(r => r.date === today);
     }
 
+    function estimateMacrosFromCalories(cal) {
+      const c = Math.max(0, Math.round(cal));
+      return {
+        calories: c,
+        carbs: Math.round(c * 0.45 / 4),
+        protein: Math.round(c * 0.25 / 4),
+        fat: Math.round(c * 0.30 / 9)
+      };
+    }
+
+    function resolveFoodNutrients(input) {
+      const cal = parseFloat(input.calories) || 0;
+      const carbs = parseFloat(input.carbs);
+      const protein = parseFloat(input.protein);
+      const fat = parseFloat(input.fat);
+      const hasMacros = [carbs, protein, fat].some(v => !isNaN(v) && v > 0);
+      if (hasMacros) {
+        return {
+          calories: cal || Math.round((carbs || 0) * 4 + (protein || 0) * 4 + (fat || 0) * 9),
+          carbs: carbs || 0,
+          protein: protein || 0,
+          fat: fat || 0
+        };
+      }
+      if (cal > 0) return estimateMacrosFromCalories(cal);
+      return { calories: 0, carbs: 0, protein: 0, fat: 0 };
+    }
+
+    function getRecentFoods(limit) {
+      const seen = new Map();
+      const sorted = [...(db.diet.records || [])].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      sorted.forEach(r => {
+        const key = (r.name || '').trim();
+        if (!key || seen.has(key)) return;
+        seen.set(key, {
+          name: key,
+          calories: r.calories || 0,
+          carbs: r.carbs || 0,
+          protein: r.protein || 0,
+          fat: r.fat || 0
+        });
+      });
+      return Array.from(seen.values()).slice(0, limit || 8);
+    }
+
+    function filterFoodLibrary(query, category) {
+      const q = (query || '').trim().toLowerCase();
+      return FOOD_LIBRARY.filter(f => {
+        if (category && category !== '全部' && f.cat !== category) return false;
+        if (!q) return true;
+        return f.name.toLowerCase().includes(q) || f.cat.includes(q);
+      });
+    }
+
+    async function quickAddFood(food, customName) {
+      const name = customName || food.name;
+      const nutrients = resolveFoodNutrients(food);
+      const ok = await mutateAndSync(() => {
+        db.diet.records.push({
+          id: uid(),
+          date: todayStr(),
+          name,
+          ...nutrients,
+          image: null,
+          quickAdd: true
+        });
+      });
+      showToast(ok ? `已加入 ${name}` : `已加入 ${name}（本機）`, !ok);
+    }
+
+    function renderFoodPicker() {
+      const query = document.getElementById('foodSearch')?.value || '';
+      const pills = document.getElementById('foodCategoryPills');
+      const list = document.getElementById('foodLibraryList');
+      if (!pills || !list) return;
+
+      pills.innerHTML = FOOD_CATEGORIES.map(cat => `
+        <button type="button" data-food-cat="${cat}" class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold active:scale-95 transition-transform ${activeFoodCategory === cat ? 'bg-ios-blue text-white' : 'bg-ios-bg text-ios-gray'}">${cat}</button>
+      `).join('');
+
+      const recent = getRecentFoods(8);
+      const recentWrap = document.getElementById('recentFoodChips');
+      const recentList = document.getElementById('recentFoodList');
+      if (recent.length) {
+        recentWrap.classList.remove('hidden');
+        recentList.innerHTML = recent.map(f => `
+          <button type="button" data-recent-food="${encodeURIComponent(f.name)}" class="shrink-0 px-3 py-2 bg-green-50 text-ios-green rounded-xl text-xs font-semibold active:scale-95 transition-transform">${f.name}</button>
+        `).join('');
+      } else {
+        recentWrap.classList.add('hidden');
+      }
+
+      const foods = filterFoodLibrary(query, activeFoodCategory);
+      if (!foods.length) {
+        list.innerHTML = '<p class="col-span-2 text-center text-ios-gray text-sm py-4">找不到，可用下方熱量估算</p>';
+        return;
+      }
+      list.innerHTML = foods.map((f, i) => `
+        <button type="button" data-food-idx="${FOOD_LIBRARY.indexOf(f)}" class="text-left bg-ios-bg rounded-xl p-3 active:scale-95 transition-transform">
+          <p class="text-sm font-semibold truncate">${f.name}</p>
+          <p class="text-xs text-ios-red font-bold mt-0.5">${f.calories} kcal</p>
+          <p class="text-[10px] text-ios-gray">${f.cat}</p>
+        </button>
+      `).join('');
+    }
+
     function renderMacroTarget(prefix, target, ratios) {
       const m = target.macros;
       const total = ratios.carbs + ratios.protein + ratios.fat;
@@ -1390,6 +1701,7 @@
     }
 
     function renderDiet() {
+      renderFoodPicker();
       const retention = getPhotoRetentionDays();
       const photoSelect = document.getElementById('photoRetentionSetting');
       if (photoSelect) photoSelect.value = String(retention);
@@ -1499,9 +1811,182 @@
       `).join('');
     }
 
+    // ─── Render: Sleep ───
+
+    function getSleepTargetHours() {
+      const v = db.sleep?.targetHours;
+      return typeof v === 'number' ? v : DEFAULT_SLEEP_TARGET;
+    }
+
+    function calcSleepMinutes(wakeDate, bedTime, wakeTime) {
+      const [bh, bm] = bedTime.split(':').map(Number);
+      const [wh, wm] = wakeTime.split(':').map(Number);
+      const wake = new Date(wakeDate + 'T' + pad2(wh) + ':' + pad2(wm) + ':00');
+      const bed = new Date(wakeDate + 'T' + pad2(bh) + ':' + pad2(bm) + ':00');
+      if (bed >= wake) bed.setDate(bed.getDate() - 1);
+      return Math.max(0, Math.round((wake - bed) / 60000));
+    }
+
+    function formatSleepHours(minutes) {
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      return m > 0 ? `${h}h${m}m` : `${h}h`;
+    }
+
+    function formatSleepHoursDecimal(minutes) {
+      const h = minutes / 60;
+      return (Math.round(h * 10) / 10) + 'h';
+    }
+
+    function getSleepRecordByDate(dateStr) {
+      return (db.sleep?.records || []).find(r => r.date === dateStr) || null;
+    }
+
+    function getLast7Dates() {
+      const dates = [];
+      const d = new Date();
+      for (let i = 0; i < SLEEP_DEBT_DAYS; i++) {
+        const x = new Date(d);
+        x.setDate(x.getDate() - i);
+        dates.push(`${x.getFullYear()}-${pad2(x.getMonth() + 1)}-${pad2(x.getDate())}`);
+      }
+      return dates;
+    }
+
+    function computeSleepStats() {
+      const targetMin = getSleepTargetHours() * 60;
+      const dates = getLast7Dates();
+      let debtMin = 0;
+      let totalMin = 0;
+      let count = 0;
+      const daily = dates.map(date => {
+        const rec = getSleepRecordByDate(date);
+        const minutes = rec?.durationMinutes ?? null;
+        const deficit = minutes !== null ? Math.max(0, targetMin - minutes) : 0;
+        debtMin += deficit;
+        if (minutes !== null) {
+          totalMin += minutes;
+          count++;
+        }
+        return { date, minutes, deficit, rec };
+      });
+      const avgMin = count ? Math.round(totalMin / count) : null;
+      const lastNight = getSleepRecordByDate(dates[0]);
+      return { debtMin, avgMin, targetMin, daily, lastNight, dates };
+    }
+
+    function applyQuickSleepHours(hours) {
+      const wakeInput = document.getElementById('sleepWake');
+      const bedInput = document.getElementById('sleepBed');
+      const now = new Date();
+      const wakeH = now.getHours();
+      const wakeM = now.getMinutes();
+      wakeInput.value = pad2(wakeH) + ':' + pad2(wakeM);
+      const bed = new Date(now.getTime() - hours * 3600000);
+      bedInput.value = pad2(bed.getHours()) + ':' + pad2(bed.getMinutes());
+      updateSleepDurationPreview();
+    }
+
+    function updateSleepDurationPreview() {
+      const date = document.getElementById('sleepDate').value;
+      const bed = document.getElementById('sleepBed').value;
+      const wake = document.getElementById('sleepWake').value;
+      const el = document.getElementById('sleepDurationPreview');
+      if (!date || !bed || !wake) { el.textContent = '—'; return; }
+      const min = calcSleepMinutes(date, bed, wake);
+      const target = getSleepTargetHours() * 60;
+      const diff = min - target;
+      el.textContent = `共 ${formatSleepHours(min)}` + (diff >= 0 ? ' · 達標 ✓' : ` · 少 ${formatSleepHours(Math.abs(diff))}`);
+    }
+
+    function renderSleep() {
+      if (!db.sleep) db.sleep = { targetHours: DEFAULT_SLEEP_TARGET, records: [] };
+      const targetSelect = document.getElementById('sleepTargetSelect');
+      if (targetSelect) targetSelect.value = String(getSleepTargetHours());
+
+      const stats = computeSleepStats();
+      document.getElementById('sleepDebtTotal').textContent = formatSleepHours(stats.debtMin);
+      document.getElementById('sleepDebtTotal').className = 'text-3xl font-bold ' + (stats.debtMin > 0 ? 'text-ios-red' : 'text-ios-green');
+
+      const lastEl = document.getElementById('sleepLastNight');
+      const lastSub = document.getElementById('sleepLastNightSub');
+      if (stats.lastNight) {
+        lastEl.textContent = formatSleepHoursDecimal(stats.lastNight.durationMinutes);
+        const diff = stats.lastNight.durationMinutes - stats.targetMin;
+        lastSub.textContent = diff >= 0 ? '已達標' : `少睡 ${formatSleepHours(Math.abs(diff))}`;
+        lastEl.className = 'text-3xl font-bold ' + (diff >= 0 ? 'text-ios-green' : 'text-indigo-600');
+      } else {
+        lastEl.textContent = '—';
+        lastSub.textContent = '尚未打卡';
+        lastEl.className = 'text-3xl font-bold text-indigo-600';
+      }
+
+      const avgEl = document.getElementById('sleepWeekAvg');
+      const avgBar = document.getElementById('sleepWeekAvgBar');
+      if (stats.avgMin !== null) {
+        avgEl.textContent = formatSleepHoursDecimal(stats.avgMin) + ' / 目標 ' + getSleepTargetHours() + 'h';
+        avgBar.style.width = Math.min(100, stats.avgMin / stats.targetMin * 100) + '%';
+        avgBar.className = 'macro-bar h-full rounded-full ' + (stats.avgMin >= stats.targetMin ? 'bg-ios-green' : 'bg-indigo-500');
+      } else {
+        avgEl.textContent = '—';
+        avgBar.style.width = '0%';
+      }
+
+      const weekChart = document.getElementById('sleepWeekChart');
+      const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+      weekChart.innerHTML = [...stats.daily].reverse().map(d => {
+        const dt = new Date(d.date + 'T12:00:00');
+        const label = `${dt.getMonth() + 1}/${dt.getDate()} (${dayNames[dt.getDay()]})`;
+        const pct = d.minutes !== null ? Math.min(100, d.minutes / stats.targetMin * 100) : 0;
+        const barColor = d.minutes === null ? 'bg-gray-200' : (d.minutes >= stats.targetMin ? 'bg-ios-green' : 'bg-ios-red');
+        const timeLabel = d.minutes !== null ? formatSleepHoursDecimal(d.minutes) : '未記';
+        const debtLabel = d.deficit > 0 ? ` 欠 ${formatSleepHours(d.deficit)}` : '';
+        return `
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-ios-gray">${label}</span>
+            <span class="font-semibold ${d.deficit > 0 ? 'text-ios-red' : 'text-gray-700'}">${timeLabel}${debtLabel}</span>
+          </div>
+          <div class="h-2.5 bg-ios-bg rounded-full overflow-hidden">
+            <div class="macro-bar h-full ${barColor} rounded-full" style="width:${pct}%"></div>
+          </div>
+        </div>`;
+      }).join('');
+
+      const records = [...(db.sleep.records || [])].sort((a, b) => b.date.localeCompare(a.date));
+      const list = document.getElementById('sleepList');
+      const empty = document.getElementById('sleepEmpty');
+      if (records.length === 0) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      list.innerHTML = records.slice(0, 14).map(r => {
+        const diff = r.durationMinutes - stats.targetMin;
+        return `
+        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-center">
+              <span class="font-semibold text-sm">${r.date}</span>
+              <span class="font-bold text-sm ${diff >= 0 ? 'text-ios-green' : 'text-ios-red'}">${formatSleepHours(r.durationMinutes)}</span>
+            </div>
+            <p class="text-xs text-ios-gray mt-0.5">${r.bedTime} → ${r.wakeTime}${diff < 0 ? ' · 欠 ' + formatSleepHours(Math.abs(diff)) : ''}</p>
+          </div>
+          <button data-delete-sleep="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>`;
+      }).join('');
+    }
+
     function renderAll() {
       renderFinance();
       renderDiet();
+      renderSleep();
     }
 
     // ─── Tab Navigation ───
@@ -1509,8 +1994,10 @@
     function switchTab(tab) {
       currentTab = tab;
       document.querySelectorAll('.tab-panel').forEach(el => el.classList.add('hidden'));
-      document.getElementById(tab === 'finance' ? 'tabFinance' : 'tabDiet').classList.remove('hidden');
-      document.getElementById('pageTitle').textContent = tab === 'finance' ? '記帳' : '飲控';
+      const panelMap = { finance: 'tabFinance', diet: 'tabDiet', sleep: 'tabSleep' };
+      const titleMap = { finance: '記帳', diet: '飲控', sleep: '睡眠' };
+      document.getElementById(panelMap[tab] || 'tabFinance').classList.remove('hidden');
+      document.getElementById('pageTitle').textContent = titleMap[tab] || '記帳';
       document.querySelectorAll('.tab-btn').forEach(btn => {
         const active = btn.dataset.tab === tab;
         btn.classList.toggle('text-ios-blue', active);
@@ -1750,7 +2237,56 @@
       document.getElementById('btnAddFoodManual').addEventListener('click', () => {
         pendingDietImage = null;
         resetDietForm();
+        document.getElementById('dietModalTitle').textContent = '自訂飲食紀錄';
         openModal('modalDiet');
+      });
+
+      document.getElementById('btnToggleDietDetail').addEventListener('click', () => {
+        const el = document.getElementById('dietDetailFields');
+        const btn = document.getElementById('btnToggleDietDetail');
+        const open = el.classList.toggle('hidden');
+        btn.textContent = open ? '▸ 展開詳細營養素（選填）' : '▾ 收合詳細營養素';
+      });
+
+      document.querySelectorAll('[data-fill-cal]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('dietCalories').value = btn.dataset.fillCal;
+        });
+      });
+
+      document.getElementById('foodSearch').addEventListener('input', () => renderFoodPicker());
+
+      document.getElementById('foodCategoryPills').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-food-cat]');
+        if (!btn) return;
+        activeFoodCategory = btn.dataset.foodCat;
+        renderFoodPicker();
+      });
+
+      document.getElementById('foodLibraryList').addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-food-idx]');
+        if (!btn) return;
+        const food = FOOD_LIBRARY[parseInt(btn.dataset.foodIdx, 10)];
+        if (food) await quickAddFood(food);
+      });
+
+      document.getElementById('recentFoodList').addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-recent-food]');
+        if (!btn) return;
+        const name = decodeURIComponent(btn.dataset.recentFood);
+        const recent = getRecentFoods(20).find(f => f.name === name);
+        if (recent) await quickAddFood(recent);
+      });
+
+      document.querySelectorAll('.estimate-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const cal = parseInt(btn.dataset.estimate, 10);
+          const labels = { 300: '輕食', 500: '點心', 700: '正餐', 900: '大餐' };
+          await quickAddFood({
+            name: labels[cal] || '估算餐',
+            ...estimateMacrosFromCalories(cal)
+          }, labels[cal] + ` ~${cal}kcal`);
+        });
       });
 
       document.getElementById('photoRetentionSetting').addEventListener('change', async (e) => {
@@ -1787,11 +2323,16 @@
 
       document.getElementById('btnSaveDiet').addEventListener('click', async () => {
         const name = document.getElementById('dietName').value.trim();
-        const calories = parseFloat(document.getElementById('dietCalories').value) || 0;
-        const carbs = parseFloat(document.getElementById('dietCarbs').value) || 0;
-        const protein = parseFloat(document.getElementById('dietProtein').value) || 0;
-        const fat = parseFloat(document.getElementById('dietFat').value) || 0;
-        if (!name && !pendingDietImage) { showToast('請輸入名稱或拍照', true); return; }
+        const nutrients = resolveFoodNutrients({
+          calories: document.getElementById('dietCalories').value,
+          carbs: document.getElementById('dietCarbs').value,
+          protein: document.getElementById('dietProtein').value,
+          fat: document.getElementById('dietFat').value
+        });
+        if (!name && !pendingDietImage && nutrients.calories <= 0) {
+          showToast('請輸入名稱或熱量', true);
+          return;
+        }
         closeModal('modalDiet');
         const image = pendingDietImage;
         pendingDietImage = null;
@@ -1799,11 +2340,8 @@
           db.diet.records.push({
             id: uid(),
             date: todayStr(),
-            name: name || '拍照紀錄',
-            calories,
-            carbs,
-            protein,
-            fat,
+            name: name || '飲食紀錄',
+            ...nutrients,
             image: isPhotoStorageEnabled() ? (image || null) : null
           });
         });
@@ -1820,6 +2358,61 @@
         });
         showToast('已刪除');
       });
+
+      // Sleep
+      document.getElementById('btnAddSleep').addEventListener('click', () => openSleepModal());
+      document.getElementById('sleepTargetSelect').addEventListener('change', async (e) => {
+        const hours = parseFloat(e.target.value);
+        const ok = await mutateAndSync(() => {
+          if (!db.sleep) db.sleep = { targetHours: DEFAULT_SLEEP_TARGET, records: [] };
+          db.sleep.targetHours = hours;
+        });
+        showToast(ok ? `目標睡眠 ${hours} 小時` : '已更新（本機）', !ok);
+      });
+      document.querySelectorAll('.sleep-quick-h').forEach(btn => {
+        btn.addEventListener('click', () => applyQuickSleepHours(parseInt(btn.dataset.sleepHours, 10)));
+      });
+      ['sleepDate', 'sleepBed', 'sleepWake'].forEach(id => {
+        document.getElementById(id).addEventListener('change', updateSleepDurationPreview);
+        document.getElementById(id).addEventListener('input', updateSleepDurationPreview);
+      });
+      document.getElementById('btnSaveSleep').addEventListener('click', async () => {
+        const date = document.getElementById('sleepDate').value;
+        const bedTime = document.getElementById('sleepBed').value;
+        const wakeTime = document.getElementById('sleepWake').value;
+        if (!date || !bedTime || !wakeTime) { showToast('請填寫完整時間', true); return; }
+        const durationMinutes = calcSleepMinutes(date, bedTime, wakeTime);
+        if (durationMinutes <= 0) { showToast('睡眠時數無效', true); return; }
+        closeModal('modalSleep');
+        const ok = await mutateAndSync(() => {
+          if (!db.sleep) db.sleep = { targetHours: DEFAULT_SLEEP_TARGET, records: [] };
+          const existing = db.sleep.records.findIndex(r => r.date === date);
+          const entry = { id: uid(), date, bedTime, wakeTime, durationMinutes };
+          if (existing >= 0) db.sleep.records[existing] = { ...db.sleep.records[existing], ...entry, id: db.sleep.records[existing].id };
+          else db.sleep.records.push(entry);
+        });
+        showToast(ok ? `已記錄 ${formatSleepHours(durationMinutes)}` : '已存本機，同步失敗', !ok);
+      });
+      document.getElementById('sleepList').addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-delete-sleep]');
+        if (!btn) return;
+        const id = btn.dataset.deleteSleep;
+        if (!confirm('確定刪除此筆睡眠紀錄？')) return;
+        await mutateAndSync(() => {
+          db.sleep.records = db.sleep.records.filter(r => r.id !== id);
+        });
+        showToast('已刪除');
+      });
+    }
+
+    function openSleepModal() {
+      const now = new Date();
+      document.getElementById('sleepDate').value = todayStr();
+      document.getElementById('sleepWake').value = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
+      const bed = new Date(now.getTime() - 8 * 3600000);
+      document.getElementById('sleepBed').value = pad2(bed.getHours()) + ':' + pad2(bed.getMinutes());
+      updateSleepDurationPreview();
+      openModal('modalSleep');
     }
 
     function openFinanceModal(type) {
@@ -1860,6 +2453,8 @@
       document.getElementById('dietCarbs').value = '';
       document.getElementById('dietProtein').value = '';
       document.getElementById('dietFat').value = '';
+      document.getElementById('dietDetailFields').classList.add('hidden');
+      document.getElementById('btnToggleDietDetail').textContent = '▸ 展開詳細營養素（選填）';
       if (!pendingDietImage) {
         document.getElementById('dietPreviewWrap').classList.add('hidden');
         document.getElementById('dietPreview').src = '';

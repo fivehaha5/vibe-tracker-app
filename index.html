@@ -11,6 +11,18 @@
     (function () {
       try {
         if (localStorage.getItem('vibe_theme') === 'dark') document.documentElement.classList.add('dark');
+        var h = location.hash;
+        if (h.indexOf('#vibe=') === 0) {
+          var data = JSON.parse(decodeURIComponent(escape(atob(h.slice(6)))));
+          if (data.u && data.r && data.t) {
+            var s = JSON.stringify({ username: data.u, repo: data.r, token: data.t, rememberCloud: true });
+            localStorage.setItem('vibe_tracker_settings', s);
+            localStorage.setItem('vibe_gh_user', data.u);
+            localStorage.setItem('vibe_gh_repo', data.r);
+            localStorage.setItem('vibe_gh_token', data.t);
+            history.replaceState(null, '', location.pathname + location.search);
+          }
+        }
       } catch (e) { /* ignore */ }
     })();
   </script>
@@ -123,6 +135,7 @@
       <div>
         <h1 id="pageTitle" class="text-xl font-bold tracking-tight">記帳</h1>
         <p id="syncStatus" class="text-xs text-ios-gray mt-0.5">尚未設定 GitHub</p>
+        <p id="homescreenTip" class="text-[10px] text-orange-500 mt-0.5 hidden">主畫面版需先同步設定 → 設定</p>
       </div>
       <button id="btnSettings" class="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-sm active:scale-95 transition-transform">
         <svg class="w-5 h-5 text-ios-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -600,11 +613,31 @@
           <p id="settingsSavedHint" class="text-[11px] text-ios-green mt-2 hidden">✓ 已自動記住，更新 App 後無需重填</p>
           <p class="text-[11px] text-ios-gray mt-1">Token 會備份至私人倉庫（僅建議私人倉庫使用）</p>
         </div>
+        <div id="homescreenSyncBlock" class="bg-orange-50 rounded-2xl p-4 border border-orange-100">
+          <p class="text-sm font-semibold text-orange-600 mb-1">📱 加入主畫面 App</p>
+          <p class="text-[11px] text-ios-gray mb-3">iPhone 主畫面版與 Safari 分開儲存，請在 Safari 設定完成後點下方按鈕，再「加入主畫面」。</p>
+          <button type="button" id="btnPrepareHomescreen" class="w-full bg-orange-500 text-white text-sm font-semibold py-3 rounded-xl active:scale-95 transition-transform">準備主畫面版（一鍵同步）</button>
+        </div>
       </div>
       <div class="flex gap-3 mt-6">
         <button id="btnSaveSettings" class="flex-1 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存並同步</button>
         <button data-close="modalSettings" class="px-6 bg-ios-bg text-ios-gray font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">取消</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Homescreen Guide Modal -->
+  <div id="modalHomescreen" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalHomescreen"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom">
+      <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
+      <h2 class="text-lg font-bold mb-3">主畫面版已準備好</h2>
+      <ol class="text-sm text-ios-gray space-y-2 mb-5 list-decimal list-inside">
+        <li>若主畫面已有舊圖示，請先<strong class="text-gray-900">刪除</strong></li>
+        <li>Safari 點 <strong class="text-gray-900">分享 → 加入主畫面</strong></li>
+        <li>之後從主畫面開啟，<strong class="text-gray-900">無需重填</strong>設定</li>
+      </ol>
+      <button data-close="modalHomescreen" class="w-full bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">知道了</button>
     </div>
   </div>
 
@@ -1186,6 +1219,68 @@
       document.getElementById('settingRepo').value = s.repo || '';
       document.getElementById('settingToken').value = s.token || '';
       updateSettingsHint();
+      updateHomescreenUI();
+    }
+
+    function isStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+    }
+
+    function applyRestoreFromHash() {
+      const hash = location.hash;
+      if (!hash.startsWith('#vibe=')) return false;
+      try {
+        const data = JSON.parse(decodeURIComponent(escape(atob(hash.slice(6)))));
+        if (data.u && data.r && data.t) {
+          saveSettings({ username: data.u, repo: data.r, token: data.t, rememberCloud: true });
+          history.replaceState(null, '', location.pathname + location.search);
+          return true;
+        }
+      } catch { /* ignore */ }
+      return false;
+    }
+
+    function prepareHomescreenSync() {
+      const s = getSettings();
+      if (!s.username || !s.repo || !s.token) {
+        showToast('請先填寫並儲存 GitHub 設定', true);
+        return;
+      }
+      const payload = btoa(unescape(encodeURIComponent(JSON.stringify({ u: s.username, r: s.repo, t: s.token }))));
+      history.replaceState(null, '', location.pathname + location.search + '#vibe=' + payload);
+      openModal('modalHomescreen');
+    }
+
+    async function tryLoadSyncHint() {
+      try {
+        const res = await fetch('./vibe_sync_hint.json', { cache: 'no-store' });
+        if (!res.ok) return;
+        const hint = await res.json();
+        if (!hint.username || !hint.repo) return;
+        const cur = getSettings();
+        if (!cur.username || !cur.repo) {
+          saveSettings({
+            username: hint.username,
+            repo: hint.repo,
+            token: cur.token,
+            rememberCloud: true
+          });
+        }
+      } catch { /* ignore */ }
+    }
+
+    function updateHomescreenUI() {
+      const tip = document.getElementById('homescreenTip');
+      const block = document.getElementById('homescreenSyncBlock');
+      if (!tip || !block) return;
+      const standalone = isStandalone();
+      const configured = isConfigured();
+      tip.classList.toggle('hidden', standalone || !configured);
+      block.classList.toggle('hidden', standalone);
+      if (standalone && !configured) {
+        setSyncStatus('主畫面版 · 請輸入 Token');
+      }
     }
 
     function getTheme() {
@@ -2466,6 +2561,8 @@
         setTheme(btn.dataset.theme);
       });
 
+      document.getElementById('btnPrepareHomescreen').addEventListener('click', prepareHomescreenSync);
+
       document.getElementById('btnSaveSettings').addEventListener('click', async () => {
         const username = document.getElementById('settingUsername').value.trim();
         const repo = document.getElementById('settingRepo').value.trim();
@@ -2951,9 +3048,14 @@
 
     async function init() {
       applyTheme(getTheme());
+      applyRestoreFromHash();
       restoreCredentialsFromAllSources();
+      if (isStandalone() && !isConfigured()) {
+        await tryLoadSyncHint();
+      }
       bindEvents();
       switchTab('finance');
+      updateHomescreenUI();
       const cached = loadLocalCache();
       if (cached) {
         db = cached;
@@ -2965,6 +3067,9 @@
       if (isConfigured()) {
         updateConfiguredStatus();
         await loadFromGitHub();
+      } else if (isStandalone()) {
+        setSyncStatus('主畫面版 · 請至設定輸入 Token');
+        showToast('主畫面版首次使用：若已用 Safari 設定過，請在 Safari 執行「準備主畫面版」', true);
       } else {
         setSyncStatus('尚未設定 GitHub');
       }

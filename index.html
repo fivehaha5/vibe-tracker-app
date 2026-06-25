@@ -135,6 +135,8 @@
 
     .diet-view-btn.active { background: #007AFF; color: #fff; }
     html.dark .diet-view-btn.active { background: #0A84FF; color: #fff; }
+    .diet-goal-btn.active { background: #007AFF; color: #fff; }
+    html.dark .diet-goal-btn.active { background: #0A84FF; color: #fff; }
     .diet-cal-cell { min-height: 2.75rem; }
     .diet-cal-cell.has-data { background: rgba(0, 122, 255, 0.08); }
     html.dark .diet-cal-cell.has-data { background: rgba(10, 132, 255, 0.15); }
@@ -358,48 +360,31 @@
       <!-- Target Settings -->
       <div class="bg-white rounded-3xl shadow-sm p-5">
         <h2 class="text-base font-bold mb-1">【目標設定】</h2>
-        <p class="text-xs text-ios-gray mb-4">依 TDEE 推算每日所需總熱量與營養素比例</p>
+        <p class="text-xs text-ios-gray mb-3">依 TDEE 與運動期營養比例（國健署為一般維持標準）</p>
 
-        <!-- Bulk -->
-        <div class="mb-5">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-semibold text-ios-green">增肌</span>
-            <span id="bulkCalories" class="text-sm font-bold text-ios-red">— kcal</span>
-          </div>
-          <div class="space-y-2">
-            <div>
-              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-blue-500">碳水</span><span id="bulkCarbsG" class="text-ios-gray">— g</span></div>
-              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="bulkCarbsBar" class="macro-bar h-full bg-blue-500 rounded-full" style="width:0%"></div></div>
-            </div>
-            <div>
-              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-green-500">蛋白質</span><span id="bulkProteinG" class="text-ios-gray">— g</span></div>
-              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="bulkProteinBar" class="macro-bar h-full bg-green-500 rounded-full" style="width:0%"></div></div>
-            </div>
-            <div>
-              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-yellow-500">脂肪</span><span id="bulkFatG" class="text-ios-gray">— g</span></div>
-              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="bulkFatBar" class="macro-bar h-full bg-yellow-400 rounded-full" style="width:0%"></div></div>
-            </div>
-          </div>
+        <div class="flex gap-2 bg-ios-bg rounded-2xl p-1.5 mb-4">
+          <button type="button" data-diet-goal="bulk" class="diet-goal-btn flex-1 py-2.5 rounded-xl text-sm font-semibold text-ios-gray active:scale-95 transition-transform">💪 增肌</button>
+          <button type="button" data-diet-goal="cut" class="diet-goal-btn flex-1 py-2.5 rounded-xl text-sm font-semibold active active:scale-95 transition-transform">🔥 減脂</button>
         </div>
 
-        <!-- Cut -->
-        <div>
+        <div id="activeGoalPanel">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-semibold text-ios-red">減脂</span>
-            <span id="cutCalories" class="text-sm font-bold text-ios-red">— kcal</span>
+            <span id="goalModeLabel" class="text-sm font-semibold text-ios-green">增肌</span>
+            <span id="goalCalories" class="text-sm font-bold text-ios-red">— kcal</span>
           </div>
+          <p id="goalRatioHint" class="text-[10px] text-ios-gray mb-3">醣類 — · 蛋白 — · 脂質 —</p>
           <div class="space-y-2">
             <div>
-              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-blue-500">碳水</span><span id="cutCarbsG" class="text-ios-gray">— g</span></div>
-              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="cutCarbsBar" class="macro-bar h-full bg-blue-500 rounded-full" style="width:0%"></div></div>
+              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-blue-500">碳水</span><span id="goalCarbsG" class="text-ios-gray">— g</span></div>
+              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="goalCarbsBar" class="macro-bar h-full bg-blue-500 rounded-full" style="width:0%"></div></div>
             </div>
             <div>
-              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-green-500">蛋白質</span><span id="cutProteinG" class="text-ios-gray">— g</span></div>
-              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="cutProteinBar" class="macro-bar h-full bg-green-500 rounded-full" style="width:0%"></div></div>
+              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-green-500">蛋白質</span><span id="goalProteinG" class="text-ios-gray">— g</span></div>
+              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="goalProteinBar" class="macro-bar h-full bg-green-500 rounded-full" style="width:0%"></div></div>
             </div>
             <div>
-              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-yellow-500">脂肪</span><span id="cutFatG" class="text-ios-gray">— g</span></div>
-              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="cutFatBar" class="macro-bar h-full bg-yellow-400 rounded-full" style="width:0%"></div></div>
+              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-yellow-500">脂肪</span><span id="goalFatG" class="text-ios-gray">— g</span></div>
+              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="goalFatBar" class="macro-bar h-full bg-yellow-400 rounded-full" style="width:0%"></div></div>
             </div>
           </div>
         </div>
@@ -429,40 +414,32 @@
           </div>
         </div>
 
-        <!-- Comparison bars -->
+        <!-- Comparison bar -->
         <div class="space-y-3 mb-4">
           <div>
             <div class="flex justify-between text-xs mb-1">
-              <span class="text-ios-gray">對比增肌目標</span>
-              <span id="remainBulk" class="font-semibold text-ios-green">—</span>
+              <span class="text-ios-gray" id="todayGoalLabel">對比目標</span>
+              <span id="remainCalories" class="font-semibold text-ios-green">—</span>
             </div>
             <div class="h-4 bg-ios-bg rounded-full overflow-hidden">
-              <div id="todayBulkBar" class="macro-bar h-full bg-gradient-to-r from-ios-green to-green-400 rounded-full" style="width:0%"></div>
-            </div>
-          </div>
-          <div>
-            <div class="flex justify-between text-xs mb-1">
-              <span class="text-ios-gray">對比減脂目標</span>
-              <span id="remainCut" class="font-semibold text-ios-red">—</span>
-            </div>
-            <div class="h-4 bg-ios-bg rounded-full overflow-hidden">
-              <div id="todayCutBar" class="macro-bar h-full bg-gradient-to-r from-ios-red to-red-400 rounded-full" style="width:0%"></div>
+              <div id="todayCalBar" class="macro-bar h-full bg-gradient-to-r from-ios-blue to-blue-400 rounded-full" style="width:0%"></div>
             </div>
           </div>
         </div>
 
         <!-- Today macro bars -->
+        <p id="todayMacroHint" class="text-[10px] text-ios-gray mb-2">今日已攝取 / 應攝取</p>
         <div class="space-y-2">
           <div>
-            <div class="flex justify-between text-xs mb-1"><span class="font-medium text-blue-500">碳水</span><span id="todayCarbsPct" class="text-ios-gray">0%</span></div>
+            <div class="flex justify-between text-xs mb-1"><span class="font-medium text-blue-500">碳水</span><span id="todayCarbsPct" class="text-ios-gray">0/—g</span></div>
             <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="todayCarbsBar" class="macro-bar h-full bg-blue-500 rounded-full" style="width:0%"></div></div>
           </div>
           <div>
-            <div class="flex justify-between text-xs mb-1"><span class="font-medium text-green-500">蛋白質</span><span id="todayProteinPct" class="text-ios-gray">0%</span></div>
+            <div class="flex justify-between text-xs mb-1"><span class="font-medium text-green-500">蛋白質</span><span id="todayProteinPct" class="text-ios-gray">0/—g</span></div>
             <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="todayProteinBar" class="macro-bar h-full bg-green-500 rounded-full" style="width:0%"></div></div>
           </div>
           <div>
-            <div class="flex justify-between text-xs mb-1"><span class="font-medium text-yellow-500">脂肪</span><span id="todayFatPct" class="text-ios-gray">0%</span></div>
+            <div class="flex justify-between text-xs mb-1"><span class="font-medium text-yellow-500">脂肪</span><span id="todayFatPct" class="text-ios-gray">0/—g</span></div>
             <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="todayFatBar" class="macro-bar h-full bg-yellow-400 rounded-full" style="width:0%"></div></div>
           </div>
         </div>
@@ -973,7 +950,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.3.3';
+    const APP_VERSION = '1.3.8';
     const DEFAULT_APP_ICON = 'green-moon';
     const ICON_THEMES = {
       'blue-v': '#007AFF',
@@ -1057,9 +1034,26 @@
     let dietCalYear = new Date().getFullYear();
     let dietCalMonth = new Date().getMonth();
     const CATEGORIES = ['食', '衣', '住', '行', '育', '樂', '其他'];
-    const MACRO_RATIOS = {
-      bulk: { carbs: 5, protein: 2, fat: 3 },
-      cut: { carbs: 3, protein: 4, fat: 3 }
+    // 增肌 / 減脂期比例（運動營養建議；國健署 50–60/10–20/20–30% 為一般維持）
+    const HPA_DIET_GOALS = {
+      bulk: {
+        label: '增肌',
+        calorieOffset: 300,
+        carbs: 52,
+        protein: 30,
+        fat: 18,
+        ratioNote: '增肌期：醣類 50–55% · 蛋白 30% · 脂質 15–20%',
+        colorClass: 'text-ios-green'
+      },
+      cut: {
+        label: '減脂',
+        calorieOffset: -500,
+        carbs: 35,
+        protein: 38,
+        fat: 27,
+        ratioNote: '減脂期：醣類 30–40% · 蛋白 30–45% · 脂質 20–30%',
+        colorClass: 'text-ios-red'
+      }
     };
 
     let db = createEmptyDB();
@@ -1089,6 +1083,7 @@
         },
         diet: {
           profile: null,
+          goalMode: 'cut',
           records: [],
           weeklySummaries: [],
           monthlySummaries: [],
@@ -2009,6 +2004,7 @@
         },
         diet: {
           profile,
+          goalMode: local.diet?.goalMode || remote.diet?.goalMode || 'cut',
           records: dietRecords,
           weeklySummaries: mergeDietSummaries(remote.diet?.weeklySummaries, local.diet?.weeklySummaries, 'weekStart'),
           monthlySummaries: mergeDietSummaries(remote.diet?.monthlySummaries, local.diet?.monthlySummaries, 'monthKey'),
@@ -2363,27 +2359,58 @@
       return Math.round(bmr * parseFloat(activity));
     }
 
-    function macroGrams(totalCal, ratios) {
-      const total = ratios.carbs + ratios.protein + ratios.fat;
-      const carbsCal = totalCal * (ratios.carbs / total);
-      const proteinCal = totalCal * (ratios.protein / total);
-      const fatCal = totalCal * (ratios.fat / total);
+    function macroGramsFromPercent(totalCal, pcts) {
       return {
-        carbs: Math.round(carbsCal / 4),
-        protein: Math.round(proteinCal / 4),
-        fat: Math.round(fatCal / 9)
+        carbs: Math.round(totalCal * pcts.carbs / 100 / 4),
+        protein: Math.round(totalCal * pcts.protein / 100 / 4),
+        fat: Math.round(totalCal * pcts.fat / 100 / 9)
+      };
+    }
+
+    function getDietGoalMode() {
+      const mode = db.diet?.goalMode;
+      return HPA_DIET_GOALS[mode] ? mode : 'cut';
+    }
+
+    function setDietGoalMode(mode) {
+      if (!HPA_DIET_GOALS[mode]) return;
+      if (!db.diet) db.diet = {};
+      db.diet.goalMode = mode;
+    }
+
+    function formatMacroIntake(actual, target) {
+      const a = Math.round(actual);
+      const t = Math.round(target);
+      return `${a}/${t}g`;
+    }
+
+    function buildGoalTarget(tdee, mode) {
+      const cfg = HPA_DIET_GOALS[mode];
+      const calories = Math.round(tdee + cfg.calorieOffset);
+      return {
+        mode,
+        label: cfg.label,
+        calories,
+        macros: macroGramsFromPercent(calories, cfg),
+        percents: { carbs: cfg.carbs, protein: cfg.protein, fat: cfg.fat },
+        ratioNote: cfg.ratioNote
       };
     }
 
     function getTargets() {
       const p = db.diet.profile;
       if (!p || !p.tdee) return null;
-      const bulkCal = Math.round(p.tdee + 300);
-      const cutCal = Math.round(p.tdee - 500);
+      const mode = getDietGoalMode();
       return {
-        bulk: { calories: bulkCal, macros: macroGrams(bulkCal, MACRO_RATIOS.bulk) },
-        cut: { calories: cutCal, macros: macroGrams(cutCal, MACRO_RATIOS.cut) }
+        active: buildGoalTarget(p.tdee, mode),
+        bulk: buildGoalTarget(p.tdee, 'bulk'),
+        cut: buildGoalTarget(p.tdee, 'cut')
       };
+    }
+
+    function getActiveTarget() {
+      const targets = getTargets();
+      return targets ? targets.active : null;
     }
 
     // ─── Image Compression ───
@@ -2659,16 +2686,38 @@
       `).join('');
     }
 
-    function renderMacroTarget(prefix, target, ratios) {
+    function renderGoalTargetPanel(target) {
+      const cfg = HPA_DIET_GOALS[getDietGoalMode()];
+      document.querySelectorAll('[data-diet-goal]').forEach(btn => {
+        const active = btn.dataset.dietGoal === getDietGoalMode();
+        btn.classList.toggle('active', active);
+        btn.classList.toggle('text-ios-gray', !active);
+      });
+      if (!target) {
+        document.getElementById('goalModeLabel').textContent = cfg.label;
+        document.getElementById('goalCalories').textContent = '— kcal';
+        document.getElementById('goalRatioHint').textContent = '請先計算 TDEE';
+        ['Carbs', 'Protein', 'Fat'].forEach(m => {
+          document.getElementById(`goal${m}G`).textContent = '— g';
+          document.getElementById(`goal${m}Bar`).style.width = '0%';
+        });
+        return;
+      }
+      const labelEl = document.getElementById('goalModeLabel');
+      labelEl.textContent = target.label;
+      labelEl.className = 'text-sm font-semibold ' + cfg.colorClass;
+      document.getElementById('goalCalories').textContent = target.calories + ' kcal';
+      document.getElementById('goalRatioHint').textContent = target.ratioNote || (
+        `醣類 ${target.percents.carbs}% · 蛋白 ${target.percents.protein}% · 脂質 ${target.percents.fat}%`
+      );
       const m = target.macros;
-      const total = ratios.carbs + ratios.protein + ratios.fat;
-      document.getElementById(`${prefix}Calories`).textContent = target.calories + ' kcal';
-      document.getElementById(`${prefix}CarbsG`).textContent = m.carbs + ' g';
-      document.getElementById(`${prefix}ProteinG`).textContent = m.protein + ' g';
-      document.getElementById(`${prefix}FatG`).textContent = m.fat + ' g';
-      document.getElementById(`${prefix}CarbsBar`).style.width = (ratios.carbs / total * 100) + '%';
-      document.getElementById(`${prefix}ProteinBar`).style.width = (ratios.protein / total * 100) + '%';
-      document.getElementById(`${prefix}FatBar`).style.width = (ratios.fat / total * 100) + '%';
+      const p = target.percents;
+      document.getElementById('goalCarbsG').textContent = m.carbs + ' g';
+      document.getElementById('goalProteinG').textContent = m.protein + ' g';
+      document.getElementById('goalFatG').textContent = m.fat + ' g';
+      document.getElementById('goalCarbsBar').style.width = p.carbs + '%';
+      document.getElementById('goalProteinBar').style.width = p.protein + '%';
+      document.getElementById('goalFatBar').style.width = p.fat + '%';
     }
 
     function renderDietSummaries() {
@@ -2844,18 +2893,8 @@
       }
 
       const targets = getTargets();
-      if (targets) {
-        renderMacroTarget('bulk', targets.bulk, MACRO_RATIOS.bulk);
-        renderMacroTarget('cut', targets.cut, MACRO_RATIOS.cut);
-      } else {
-        ['bulk', 'cut'].forEach(prefix => {
-          document.getElementById(`${prefix}Calories`).textContent = '— kcal';
-          ['Carbs', 'Protein', 'Fat'].forEach(m => {
-            document.getElementById(`${prefix}${m}G`).textContent = '— g';
-            document.getElementById(`${prefix}${m}Bar`).style.width = '0%';
-          });
-        });
-      }
+      const active = targets?.active;
+      renderGoalTargetPanel(active);
 
       document.getElementById('todayDateLabel').textContent = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
 
@@ -2873,28 +2912,30 @@
       document.getElementById('todayProtein').textContent = Math.round(protein);
       document.getElementById('todayFat').textContent = Math.round(fat);
 
-      if (targets) {
-        const bulkRemain = targets.bulk.calories - cal;
-        const cutRemain = targets.cut.calories - cal;
-        document.getElementById('remainBulk').textContent = bulkRemain >= 0 ? `尚可攝取 ${bulkRemain} kcal` : `超出 ${Math.abs(bulkRemain)} kcal`;
-        document.getElementById('remainBulk').className = 'font-semibold ' + (bulkRemain >= 0 ? 'text-ios-green' : 'text-ios-red');
-        document.getElementById('remainCut').textContent = cutRemain >= 0 ? `尚可攝取 ${cutRemain} kcal` : `超出 ${Math.abs(cutRemain)} kcal`;
-        document.getElementById('remainCut').className = 'font-semibold ' + (cutRemain >= 0 ? 'text-ios-green' : 'text-ios-red');
-        document.getElementById('todayBulkBar').style.width = Math.min(100, cal / targets.bulk.calories * 100) + '%';
-        document.getElementById('todayCutBar').style.width = Math.min(100, cal / targets.cut.calories * 100) + '%';
+      if (active) {
+        const remain = active.calories - cal;
+        document.getElementById('todayGoalLabel').textContent = `對比${active.label}目標`;
+        document.getElementById('remainCalories').textContent = remain >= 0 ? `尚可攝取 ${remain} kcal` : `超出 ${Math.abs(remain)} kcal`;
+        document.getElementById('remainCalories').className = 'font-semibold ' + (remain >= 0 ? 'text-ios-green' : 'text-ios-red');
+        document.getElementById('todayCalBar').style.width = Math.min(100, cal / active.calories * 100) + '%';
+        document.getElementById('todayMacroHint').textContent =
+          `${active.label}目標 · 今日已攝取 / 應攝取 · ${active.ratioNote}`;
 
-        const bm = targets.bulk.macros;
-        document.getElementById('todayCarbsPct').textContent = Math.round(carbs / bm.carbs * 100) + '%';
-        document.getElementById('todayProteinPct').textContent = Math.round(protein / bm.protein * 100) + '%';
-        document.getElementById('todayFatPct').textContent = Math.round(fat / bm.fat * 100) + '%';
-        document.getElementById('todayCarbsBar').style.width = Math.min(100, carbs / bm.carbs * 100) + '%';
-        document.getElementById('todayProteinBar').style.width = Math.min(100, protein / bm.protein * 100) + '%';
-        document.getElementById('todayFatBar').style.width = Math.min(100, fat / bm.fat * 100) + '%';
+        const gm = active.macros;
+        document.getElementById('todayCarbsPct').textContent = formatMacroIntake(carbs, gm.carbs);
+        document.getElementById('todayProteinPct').textContent = formatMacroIntake(protein, gm.protein);
+        document.getElementById('todayFatPct').textContent = formatMacroIntake(fat, gm.fat);
+        document.getElementById('todayCarbsBar').style.width = gm.carbs > 0 ? Math.min(100, carbs / gm.carbs * 100) + '%' : '0%';
+        document.getElementById('todayProteinBar').style.width = gm.protein > 0 ? Math.min(100, protein / gm.protein * 100) + '%' : '0%';
+        document.getElementById('todayFatBar').style.width = gm.fat > 0 ? Math.min(100, fat / gm.fat * 100) + '%' : '0%';
       } else {
-        document.getElementById('remainBulk').textContent = '請先計算 TDEE';
-        document.getElementById('remainCut').textContent = '請先計算 TDEE';
-        document.getElementById('todayBulkBar').style.width = '0%';
-        document.getElementById('todayCutBar').style.width = '0%';
+        document.getElementById('todayGoalLabel').textContent = '對比目標';
+        document.getElementById('remainCalories').textContent = '請先計算 TDEE';
+        document.getElementById('todayCalBar').style.width = '0%';
+        document.getElementById('todayMacroHint').textContent = '今日已攝取 / 應攝取';
+        document.getElementById('todayCarbsPct').textContent = '0/—g';
+        document.getElementById('todayProteinPct').textContent = '0/—g';
+        document.getElementById('todayFatPct').textContent = '0/—g';
         document.getElementById('todayCarbsBar').style.width = '0%';
         document.getElementById('todayProteinBar').style.width = '0%';
         document.getElementById('todayFatBar').style.width = '0%';
@@ -3522,6 +3563,15 @@
 
       document.querySelectorAll('[data-diet-view]').forEach(btn => {
         btn.addEventListener('click', () => setDietView(btn.dataset.dietView));
+      });
+      document.querySelectorAll('[data-diet-goal]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const mode = btn.dataset.dietGoal;
+          if (mode === getDietGoalMode()) return;
+          await mutateAndSync(() => setDietGoalMode(mode));
+          renderDiet();
+          showToast(`已切換至${HPA_DIET_GOALS[mode].label}模式`);
+        });
       });
       document.getElementById('btnDietCalPrev').addEventListener('click', () => {
         dietCalMonth--;

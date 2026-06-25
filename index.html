@@ -597,6 +597,8 @@
           <label class="text-xs text-ios-gray">Personal Access Token (PAT)</label>
           <input id="settingToken" type="password" autocomplete="off" placeholder="ghp_xxxxxxxxxxxx" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
           <p class="text-[11px] text-ios-gray mt-1">需要 repo 權限，資料儲存於 vibe_tracker_db.json</p>
+          <p id="settingsSavedHint" class="text-[11px] text-ios-green mt-2 hidden">✓ 已自動記住，更新 App 後無需重填</p>
+          <p class="text-[11px] text-ios-gray mt-1">Token 會備份至私人倉庫（僅建議私人倉庫使用）</p>
         </div>
       </div>
       <div class="flex gap-3 mt-6">
@@ -829,6 +831,9 @@
 
     const DB_PATH = 'vibe_tracker_db.json';
     const SETTINGS_KEY = 'vibe_tracker_settings';
+    const GH_USER_KEY = 'vibe_gh_user';
+    const GH_REPO_KEY = 'vibe_gh_repo';
+    const GH_TOKEN_KEY = 'vibe_gh_token';
     const THEME_KEY = 'vibe_theme';
     const LOCAL_DB_KEY = 'vibe_tracker_db_cache';
     const CARRIER_KEY = 'vibe_carrier_backup';
@@ -1091,14 +1096,96 @@
 
     function getSettings() {
       try {
-        return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+        const main = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+        return {
+          username: main.username || localStorage.getItem(GH_USER_KEY) || '',
+          repo: main.repo || localStorage.getItem(GH_REPO_KEY) || '',
+          token: main.token || localStorage.getItem(GH_TOKEN_KEY) || '',
+          rememberCloud: main.rememberCloud !== false
+        };
       } catch {
-        return {};
+        return { username: '', repo: '', token: '', rememberCloud: true };
       }
     }
 
     function saveSettings(obj) {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(obj));
+      const data = {
+        username: obj.username || '',
+        repo: obj.repo || '',
+        token: obj.token || '',
+        rememberCloud: obj.rememberCloud !== false
+      };
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(data));
+      if (data.username) localStorage.setItem(GH_USER_KEY, data.username);
+      if (data.repo) localStorage.setItem(GH_REPO_KEY, data.repo);
+      if (data.token) localStorage.setItem(GH_TOKEN_KEY, data.token);
+      updateSettingsHint();
+      updateConfiguredStatus();
+    }
+
+    function persistGitHubToDbMeta() {
+      const s = getSettings();
+      if (!s.username || !s.repo || !s.token) return;
+      if (!db.meta) db.meta = {};
+      db.meta.github = { username: s.username, repo: s.repo, token: s.token };
+    }
+
+    function restoreCredentialsFromDbMeta() {
+      const gh = db.meta?.github;
+      if (!gh?.username || !gh?.repo || !gh?.token) return false;
+      const cur = getSettings();
+      if (cur.username && cur.repo && cur.token) return false;
+      saveSettings({ username: gh.username, repo: gh.repo, token: gh.token, rememberCloud: true });
+      return true;
+    }
+
+    function restoreCredentialsFromAllSources() {
+      const cur = getSettings();
+      if (cur.username && cur.repo && cur.token) return;
+      try {
+        const raw = localStorage.getItem(LOCAL_DB_KEY);
+        if (raw) {
+          const gh = JSON.parse(raw).meta?.github;
+          if (gh?.username && gh?.repo && gh?.token) {
+            saveSettings({ username: gh.username, repo: gh.repo, token: gh.token, rememberCloud: true });
+          }
+        }
+      } catch { /* ignore */ }
+    }
+
+    function updateSettingsHint() {
+      const el = document.getElementById('settingsSavedHint');
+      if (el) el.classList.toggle('hidden', !isConfigured());
+    }
+
+    function updateConfiguredStatus() {
+      if (!isConfigured()) return;
+      const s = getSettings();
+      setSyncStatus(`已記住 · ${s.username}/${s.repo}`);
+    }
+
+    let autoSaveSettingsTimer = null;
+    function autoSaveSettingsFromForm() {
+      clearTimeout(autoSaveSettingsTimer);
+      autoSaveSettingsTimer = setTimeout(() => {
+        const username = document.getElementById('settingUsername').value.trim();
+        const repo = document.getElementById('settingRepo').value.trim();
+        const tokenInput = document.getElementById('settingToken').value.trim();
+        const prev = getSettings();
+        const token = tokenInput || prev.token || '';
+        if (!username && !repo && !token) return;
+        saveSettings({ username, repo, token, rememberCloud: true });
+        persistGitHubToDbMeta();
+        saveLocalCache();
+      }, 500);
+    }
+
+    function fillSettingsForm() {
+      const s = getSettings();
+      document.getElementById('settingUsername').value = s.username || '';
+      document.getElementById('settingRepo').value = s.repo || '';
+      document.getElementById('settingToken').value = s.token || '';
+      updateSettingsHint();
     }
 
     function getTheme() {
@@ -1162,6 +1249,7 @@
         if (res.status === 404) {
           db = localCache ? mergeDB({}, localCache) : createEmptyDB();
           fileSha = null;
+          persistGitHubToDbMeta();
           saveLocalCache();
           renderAll();
           await saveToGitHub();
@@ -1177,11 +1265,15 @@
         fileSha = data.sha;
         const decoded = JSON.parse(atob(data.content.replace(/\n/g, '')));
         db = mergeDB(decoded, localCache);
+        restoreCredentialsFromDbMeta();
+        persistGitHubToDbMeta();
         if (purgeExpiredDietImages()) saveLocalCache();
         saveLocalCache();
         const repairs = dbNeedsCloudRepair(decoded, db);
-        if (repairs.length) await saveToGitHub();
+        const needsCredBackup = !decoded.meta?.github?.token && getSettings().token;
+        if (repairs.length || needsCredBackup) await saveToGitHub();
         setSyncStatus('已同步 · ' + new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }));
+        updateConfiguredStatus();
         renderAll();
         checkSubscriptionReminders();
       } catch (e) {
@@ -1301,7 +1393,10 @@
 
       return {
         version: Math.max(remote.version || 1, local.version || 1, 2),
-        meta: { updatedAt: Math.max(remoteUpdated, localUpdated, Date.now()) },
+        meta: {
+          updatedAt: Math.max(remoteUpdated, localUpdated, Date.now()),
+          github: mergeGitHubMeta(remote.meta, local.meta)
+        },
         finance: {
           records: newerIsLocal && localRecords.length >= remoteRecords.length
             ? localRecords
@@ -1326,6 +1421,18 @@
         sleep: mergeSleepData(remote.sleep, local.sleep, newerIsLocal),
         training: mergeTrainingData(remote.training, local.training)
       };
+    }
+
+    function mergeGitHubMeta(remoteMeta, localMeta) {
+      const r = remoteMeta?.github;
+      const l = localMeta?.github;
+      const s = getSettings();
+      if (s.username && s.repo && s.token) {
+        return { username: s.username, repo: s.repo, token: s.token };
+      }
+      if (l?.username && l?.repo && l?.token) return l;
+      if (r?.username && r?.repo && r?.token) return r;
+      return l || r || null;
     }
 
     function mergeTrainingRecords(remote, local) {
@@ -2344,12 +2451,13 @@
       });
 
       document.getElementById('btnSettings').addEventListener('click', () => {
-        const s = getSettings();
-        document.getElementById('settingUsername').value = s.username || '';
-        document.getElementById('settingRepo').value = s.repo || '';
-        document.getElementById('settingToken').value = s.token || '';
+        fillSettingsForm();
         applyTheme(getTheme());
         openModal('modalSettings');
+      });
+
+      ['settingUsername', 'settingRepo', 'settingToken'].forEach(id => {
+        document.getElementById(id).addEventListener('input', autoSaveSettingsFromForm);
       });
 
       document.getElementById('themeToggle').addEventListener('click', (e) => {
@@ -2366,10 +2474,14 @@
           showToast('請填寫所有設定欄位', true);
           return;
         }
-        saveSettings({ username, repo, token });
+        saveSettings({ username, repo, token, rememberCloud: true });
+        persistGitHubToDbMeta();
+        saveLocalCache();
         closeModal('modalSettings');
         showToast('設定已儲存，正在同步…');
         await loadFromGitHub();
+        persistGitHubToDbMeta();
+        await saveToGitHub();
       });
 
       document.querySelectorAll('[data-close]').forEach(el => {
@@ -2839,17 +2951,22 @@
 
     async function init() {
       applyTheme(getTheme());
+      restoreCredentialsFromAllSources();
       bindEvents();
       switchTab('finance');
       const cached = loadLocalCache();
       if (cached) {
         db = cached;
+        restoreCredentialsFromDbMeta();
         renderAll();
       } else {
         renderAll();
       }
       if (isConfigured()) {
+        updateConfiguredStatus();
         await loadFromGitHub();
+      } else {
+        setSyncStatus('尚未設定 GitHub');
       }
       purgeExpiredDietImages();
       saveLocalCache();

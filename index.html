@@ -5,11 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="theme-color" content="#F2F2F7">
+  <meta name="theme-color" content="#F2F2F7" id="metaThemeColor">
   <title>Vibe Tracker</title>
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem('vibe_theme') === 'dark') document.documentElement.classList.add('dark');
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -33,6 +41,7 @@
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', sans-serif;
       background: #F2F2F7;
       overscroll-behavior: none;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
     .safe-top { padding-top: env(safe-area-inset-top, 0px); }
     .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -45,6 +54,63 @@
     .pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
     #carrierBarcode svg { max-width: 100%; height: auto; }
     #qrScannerVideo { object-fit: cover; transform: scaleX(-1); }
+
+    /* Theme toggle */
+    .theme-seg { display: flex; background: #E5E5EA; border-radius: 12px; padding: 3px; }
+    .theme-seg-btn { flex: 1; padding: 8px 12px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #8E8E93; transition: all 0.2s ease; }
+    .theme-seg-btn.active { background: #fff; color: #007AFF; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+    /* Dark theme overrides */
+    html.dark body { background: #000; color: #F2F2F7; }
+    html.dark .bg-ios-bg { background-color: #1C1C1E !important; }
+    html.dark .bg-white { background-color: #1C1C1E !important; }
+    html.dark .bg-white\/90 { background-color: rgba(28,28,30,0.92) !important; }
+    html.dark .bg-ios-bg\/90 { background-color: rgba(0,0,0,0.88) !important; }
+    html.dark .text-gray-900 { color: #F2F2F7 !important; }
+    html.dark .text-gray-700 { color: #E5E5EA !important; }
+    html.dark .text-ios-gray { color: #98989D !important; }
+    html.dark .border-gray-200\/60 { border-color: rgba(56,56,58,0.8) !important; }
+    html.dark .border-gray-200 { border-color: #38383A !important; }
+    html.dark .border-orange-200 { border-color: #5C4030 !important; }
+    html.dark .border-transparent { border-color: transparent !important; }
+    html.dark .shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,0.35) !important; }
+    html.dark header, html.dark nav { border-color: rgba(56,56,58,0.8) !important; }
+    html.dark input, html.dark select, html.dark textarea { color: #F2F2F7; }
+    html.dark input::placeholder, html.dark textarea::placeholder { color: #636366; }
+    html.dark .bg-green-50 { background-color: #1A2E1F !important; }
+    html.dark .bg-green-100 { background-color: #1E3A24 !important; }
+    html.dark .bg-red-100 { background-color: #3A1F1F !important; }
+    html.dark .bg-orange-50 { background-color: #2E2218 !important; }
+    html.dark .bg-orange-50\/50 { background-color: rgba(46,34,24,0.5) !important; }
+    html.dark .bg-orange-100 { background-color: #3D2E1A !important; }
+    html.dark .bg-purple-100 { background-color: #2A1F3A !important; }
+    html.dark .bg-blue-50 { background-color: #1A2438 !important; }
+    html.dark .bg-indigo-100 { background-color: #1F2240 !important; }
+    html.dark .bg-yellow-100 { background-color: #3A3418 !important; }
+    html.dark .bg-teal-100 { background-color: #1A3330 !important; }
+    html.dark .bg-pink-100 { background-color: #3A1F2E !important; }
+    html.dark .bg-gray-100 { background-color: #2C2C2E !important; }
+    html.dark .bg-gray-200 { background-color: #3A3A3C !important; }
+    html.dark .bg-gray-300 { background-color: #48484A !important; }
+    html.dark .border-green-100 { border-color: #2A4A30 !important; }
+    html.dark .border-ios-blue\/20 { border-color: rgba(10,132,255,0.35) !important; }
+    html.dark .from-ios-green { --tw-gradient-from: #34C759 !important; }
+    html.dark .to-green-400 { --tw-gradient-to: #4CD964 !important; }
+    html.dark .from-ios-red { --tw-gradient-from: #FF453A !important; }
+    html.dark .to-red-400 { --tw-gradient-to: #FF6961 !important; }
+    html.dark .text-orange-600, html.dark .text-orange-700 { color: #FF9F0A !important; }
+    html.dark .text-indigo-600 { color: #5E5CE6 !important; }
+    html.dark .theme-seg { background: #2C2C2E; }
+    html.dark .theme-seg-btn { color: #98989D; }
+    html.dark .theme-seg-btn.active { background: #3A3A3C; color: #0A84FF; box-shadow: none; }
+    html.dark #btnSettings { background-color: #2C2C2E !important; }
+    html.dark .peer:checked ~ div { background-color: #34C759 !important; }
+    html.dark label .w-11.h-6.bg-gray-300 { background-color: #39393D !important; }
+    html.dark .text-ios-blue { color: #0A84FF !important; }
+    html.dark .text-ios-green { color: #30D158 !important; }
+    html.dark .text-ios-red { color: #FF453A !important; }
+    html.dark .bg-black\/40 { background-color: rgba(0,0,0,0.65) !important; }
+    html.dark .bg-gray-900\/90 { background-color: rgba(44,44,46,0.95) !important; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
@@ -509,6 +575,15 @@
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom max-h-[85vh] overflow-y-auto">
       <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
       <h2 class="text-lg font-bold mb-4">GitHub 雲端同步設定</h2>
+
+      <div class="mb-5">
+        <label class="text-xs text-ios-gray">外觀主題</label>
+        <div class="theme-seg mt-2" id="themeToggle">
+          <button type="button" data-theme="light" class="theme-seg-btn active active:scale-95 transition-transform">☀️ 亮色</button>
+          <button type="button" data-theme="dark" class="theme-seg-btn active:scale-95 transition-transform">🌙 深色</button>
+        </div>
+      </div>
+
       <div class="space-y-4">
         <div>
           <label class="text-xs text-ios-gray">GitHub 帳號 (Username)</label>
@@ -754,6 +829,7 @@
 
     const DB_PATH = 'vibe_tracker_db.json';
     const SETTINGS_KEY = 'vibe_tracker_settings';
+    const THEME_KEY = 'vibe_theme';
     const LOCAL_DB_KEY = 'vibe_tracker_db_cache';
     const CARRIER_KEY = 'vibe_carrier_backup';
     const DIET_PROFILE_KEY = 'vibe_diet_profile_backup';
@@ -1023,6 +1099,29 @@
 
     function saveSettings(obj) {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(obj));
+    }
+
+    function getTheme() {
+      try {
+        return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light';
+      } catch {
+        return 'light';
+      }
+    }
+
+    function applyTheme(theme) {
+      const isDark = theme === 'dark';
+      document.documentElement.classList.toggle('dark', isDark);
+      const meta = document.getElementById('metaThemeColor');
+      if (meta) meta.content = isDark ? '#000000' : '#F2F2F7';
+      document.querySelectorAll('#themeToggle .theme-seg-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === theme);
+      });
+    }
+
+    function setTheme(theme) {
+      localStorage.setItem(THEME_KEY, theme);
+      applyTheme(theme);
     }
 
     function isConfigured() {
@@ -2249,7 +2348,14 @@
         document.getElementById('settingUsername').value = s.username || '';
         document.getElementById('settingRepo').value = s.repo || '';
         document.getElementById('settingToken').value = s.token || '';
+        applyTheme(getTheme());
         openModal('modalSettings');
+      });
+
+      document.getElementById('themeToggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-theme]');
+        if (!btn) return;
+        setTheme(btn.dataset.theme);
       });
 
       document.getElementById('btnSaveSettings').addEventListener('click', async () => {
@@ -2732,6 +2838,7 @@
     // ─── Init ───
 
     async function init() {
+      applyTheme(getTheme());
       bindEvents();
       switchTab('finance');
       const cached = loadLocalCache();

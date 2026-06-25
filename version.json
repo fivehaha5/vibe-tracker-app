@@ -1,3 +1,12 @@
 {
-  "version": "1.3.0"
+  "version": "1.3.3",
+  "icon": "blue-v",
+  "icons": {
+    "blue-v": "記帳藍 · V 趨勢線",
+    "green-moon": "睡眠綠 · 月亮與葉",
+    "orange-sun": "活力橙 · 日出",
+    "purple-train": "訓練紫 · 哑铃",
+    "slate-finance": "深色 · 錢包記帳",
+    "coral-food": "飲控粉 · 飲食碗"
+  }
 }

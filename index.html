@@ -443,6 +443,7 @@
             <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="todayFatBar" class="macro-bar h-full bg-yellow-400 rounded-full" style="width:0%"></div></div>
           </div>
         </div>
+        <button type="button" id="btnCopyDietAiPrompt" class="w-full mt-4 bg-ios-bg text-ios-blue text-sm font-semibold py-3 rounded-2xl border border-ios-blue/20 active:scale-95 transition-transform">✨ 複製「問 AI 今天怎麼吃」提示詞</button>
       </div>
 
       <!-- Quick Food Log -->
@@ -950,7 +951,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.3.8';
+    const APP_VERSION = '1.3.9';
     const DEFAULT_APP_ICON = 'green-moon';
     const ICON_THEMES = {
       'blue-v': '#007AFF',
@@ -2413,6 +2414,80 @@
       return targets ? targets.active : null;
     }
 
+    function sumTodayDietNutrients() {
+      const records = getTodayDietRecords();
+      let cal = 0, carbs = 0, protein = 0, fat = 0;
+      records.forEach(r => {
+        cal += r.calories || 0;
+        carbs += r.carbs || 0;
+        protein += r.protein || 0;
+        fat += r.fat || 0;
+      });
+      return { records, cal, carbs, protein, fat };
+    }
+
+    function buildDietAiPrompt() {
+      const now = new Date();
+      const timeStr = now.toLocaleString('zh-TW', {
+        year: 'numeric', month: 'long', day: 'numeric',
+        weekday: 'long', hour: '2-digit', minute: '2-digit', hour12: false
+      });
+      const target = getActiveTarget();
+      const { records, cal, carbs, protein, fat } = sumTodayDietNutrients();
+      const p = db.diet?.profile;
+      const lines = [
+        '請根據以下資訊，建議我「接下來」該怎麼吃（給出具體餐點建議與份量，繁體中文）：',
+        '',
+        `【目前時間】${timeStr}`,
+        ''
+      ];
+
+      if (target) {
+        lines.push(`【飲食目標】${target.label}模式`);
+        if (p?.tdee) lines.push(`TDEE：${p.tdee} kcal · 今日熱量目標：${target.calories} kcal`);
+        lines.push(`【目標營養素比例】${target.ratioNote}`);
+        lines.push(`【今日應攝取】熱量 ${target.calories} kcal · 碳水 ${target.macros.carbs}g · 蛋白質 ${target.macros.protein}g · 脂肪 ${target.macros.fat}g`);
+      } else {
+        lines.push('【飲食目標】尚未設定（請先在 App 計算並儲存 TDEE）');
+      }
+
+      lines.push('');
+      lines.push(`【今日已攝取】熱量 ${Math.round(cal)} kcal · 碳水 ${Math.round(carbs)}g · 蛋白質 ${Math.round(protein)}g · 脂肪 ${Math.round(fat)}g`);
+
+      if (target) {
+        lines.push(
+          `【今日尚需】熱量約 ${Math.round(target.calories - cal)} kcal · 碳水約 ${Math.round(target.macros.carbs - carbs)}g · 蛋白質約 ${Math.round(target.macros.protein - protein)}g · 脂肪約 ${Math.round(target.macros.fat - fat)}g`
+        );
+      }
+
+      if (p?.weight) lines.push(`【體重】${p.weight} kg`);
+
+      lines.push('');
+      if (records.length) {
+        lines.push('【今日已吃】');
+        records.forEach((r, i) => {
+          lines.push(
+            `${i + 1}. ${r.name || '未命名'} — ${Math.round(r.calories || 0)} kcal（碳${Math.round(r.carbs || 0)}g · 蛋${Math.round(r.protein || 0)}g · 脂${Math.round(r.fat || 0)}g）`
+          );
+        });
+      } else {
+        lines.push('【今日已吃】尚無紀錄');
+      }
+
+      lines.push('');
+      lines.push('請依目前時間，建議我下一餐或今天剩餘時間的飲食安排。');
+      return lines.join('\n');
+    }
+
+    async function copyDietAiPrompt() {
+      try {
+        await navigator.clipboard.writeText(buildDietAiPrompt());
+        showToast('已複製 AI 飲食提示詞');
+      } catch {
+        showToast('複製失敗，請允許剪貼簿權限', true);
+      }
+    }
+
     // ─── Image Compression ───
 
     function compressImage(file) {
@@ -3573,6 +3648,7 @@
           showToast(`已切換至${HPA_DIET_GOALS[mode].label}模式`);
         });
       });
+      document.getElementById('btnCopyDietAiPrompt').addEventListener('click', copyDietAiPrompt);
       document.getElementById('btnDietCalPrev').addEventListener('click', () => {
         dietCalMonth--;
         if (dietCalMonth < 0) { dietCalMonth = 11; dietCalYear--; }

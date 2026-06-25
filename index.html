@@ -128,6 +128,14 @@
     #updateBanner.show { display: flex; }
     html.dark #updateBanner { background: #1C3A5F; border-color: #0A84FF; }
     html.dark #updateBanner p { color: #E5E5EA; }
+
+    .diet-view-btn.active { background: #007AFF; color: #fff; }
+    html.dark .diet-view-btn.active { background: #0A84FF; color: #fff; }
+    .diet-cal-cell { min-height: 2.75rem; }
+    .diet-cal-cell.has-data { background: rgba(0, 122, 255, 0.08); }
+    html.dark .diet-cal-cell.has-data { background: rgba(10, 132, 255, 0.15); }
+    .diet-cal-cell.is-today { box-shadow: inset 0 0 0 2px #007AFF; }
+    html.dark .diet-cal-cell.is-today { box-shadow: inset 0 0 0 2px #0A84FF; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
@@ -268,6 +276,18 @@
         <p id="subscriptionEmpty" class="text-center text-ios-gray text-sm py-4 hidden">尚無訂閱項目</p>
       </div>
 
+      <!-- Export for reconciliation -->
+      <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between gap-3">
+        <div>
+          <p class="text-sm font-semibold">對帳匯出</p>
+          <p class="text-[11px] text-ios-gray">保留每筆明細，可下載 Excel 表格</p>
+        </div>
+        <div class="flex gap-2 shrink-0">
+          <button type="button" id="btnExportFinanceMonth" class="text-xs font-semibold px-3 py-2 rounded-xl bg-ios-bg text-ios-blue active:scale-95 transition-transform">本月</button>
+          <button type="button" id="btnExportFinanceAll" class="text-xs font-semibold px-3 py-2 rounded-xl bg-ios-blue text-white active:scale-95 transition-transform">全部</button>
+        </div>
+      </div>
+
       <!-- Add Buttons -->
       <div class="flex gap-3">
         <button id="btnAddIncome" class="flex-1 bg-ios-green text-white font-semibold py-3 rounded-2xl shadow-sm active:scale-95 transition-transform">＋ 收入</button>
@@ -381,6 +401,13 @@
         </div>
       </div>
 
+      <!-- Diet view toggle -->
+      <div class="flex gap-2 bg-white rounded-2xl shadow-sm p-1.5">
+        <button type="button" data-diet-view="today" class="diet-view-btn flex-1 py-2.5 rounded-xl text-sm font-semibold active:scale-95 transition-transform active">今日紀錄</button>
+        <button type="button" data-diet-view="calendar" class="diet-view-btn flex-1 py-2.5 rounded-xl text-sm font-semibold text-ios-gray active:scale-95 transition-transform">日曆與小結</button>
+      </div>
+
+      <div id="dietTodayPanel">
       <!-- Today Actual -->
       <div class="bg-white rounded-3xl shadow-sm p-5">
         <h2 class="text-base font-bold mb-1">【今日實際攝取】</h2>
@@ -495,6 +522,39 @@
       <!-- Diet Records -->
       <div id="dietList" class="space-y-2"></div>
       <p id="dietEmpty" class="text-center text-ios-gray text-sm py-8 hidden">今日尚無飲食紀錄</p>
+      </div>
+
+      <div id="dietCalendarPanel" class="hidden space-y-4">
+        <div class="bg-white rounded-3xl shadow-sm p-5">
+          <div class="flex items-center justify-between mb-4">
+            <button type="button" id="btnDietCalPrev" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
+              <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span id="dietCalMonthLabel" class="text-base font-semibold"></span>
+            <button type="button" id="btnDietCalNext" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
+              <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+          <div class="grid grid-cols-7 gap-1 mb-1 text-center text-[10px] text-ios-gray font-medium">
+            <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+          </div>
+          <div id="dietCalendarGrid" class="grid grid-cols-7 gap-1"></div>
+          <p class="text-[10px] text-ios-gray mt-3 text-center">點日期查看當日攝取；藍底為有紀錄</p>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm p-5">
+          <h2 class="text-base font-bold mb-1">每週小結</h2>
+          <p class="text-[11px] text-ios-gray mb-3">詳細週結保留 3 個月，之後併入月結</p>
+          <div id="dietWeeklyList" class="space-y-2"></div>
+          <p id="dietWeeklyEmpty" class="text-center text-ios-gray text-sm py-4 hidden">尚無週小結</p>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm p-5">
+          <h2 class="text-base font-bold mb-1">每月總結</h2>
+          <div id="dietMonthlyList" class="space-y-2"></div>
+          <p id="dietMonthlyEmpty" class="text-center text-ios-gray text-sm py-4 hidden">尚無月總結</p>
+        </div>
+      </div>
     </section>
 
     <!-- ===== SLEEP TAB ===== -->
@@ -718,6 +778,19 @@
     </div>
   </div>
 
+  <!-- Diet Day Detail Modal -->
+  <div id="modalDietDay" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalDietDay"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom max-h-[80vh] overflow-y-auto">
+      <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
+      <h2 id="dietDayModalTitle" class="text-lg font-bold mb-2">飲食紀錄</h2>
+      <div id="dietDayModalSummary" class="grid grid-cols-2 gap-2 mb-4"></div>
+      <div id="dietDayModalList" class="space-y-2"></div>
+      <p id="dietDayModalEmpty" class="text-center text-ios-gray text-sm py-6 hidden">此日無詳細紀錄</p>
+      <button data-close="modalDietDay" class="w-full mt-4 bg-ios-bg text-ios-gray font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">關閉</button>
+    </div>
+  </div>
+
   <!-- Carrier Modal -->
   <div id="modalCarrier" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black/40" data-close="modalCarrier"></div>
@@ -896,7 +969,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.2.0';
+    const APP_VERSION = '1.3.0';
     const SETTINGS_KEY = 'vibe_tracker_settings';
     const GH_USER_KEY = 'vibe_gh_user';
     const GH_REPO_KEY = 'vibe_gh_repo';
@@ -908,6 +981,7 @@
     const DEFAULT_SLEEP_TARGET = 8;
     const SLEEP_DEBT_DAYS = 7;
     const DEFAULT_PHOTO_RETENTION_DAYS = 3;
+    const DIET_WEEKLY_RETENTION_DAYS = 90;
     const FOOD_CATEGORIES = ['全部', '健身', '超商', '外食', '飲料', '原型'];
     const FOOD_LIBRARY = [
       { name: '水煮雞胸 150g', calories: 248, carbs: 0, protein: 46, fat: 5, cat: '健身' },
@@ -966,6 +1040,9 @@
       { id: 'calves', label: '小腿', recoveryH: 24, color: 'bg-gray-100 text-gray-600' }
     ];
     let activeFoodCategory = '全部';
+    let dietView = 'today';
+    let dietCalYear = new Date().getFullYear();
+    let dietCalMonth = new Date().getMonth();
     const CATEGORIES = ['食', '衣', '住', '行', '育', '樂', '其他'];
     const MACRO_RATIOS = {
       bulk: { carbs: 5, protein: 2, fat: 3 },
@@ -1000,6 +1077,8 @@
         diet: {
           profile: null,
           records: [],
+          weeklySummaries: [],
+          monthlySummaries: [],
           photoRetentionDays: DEFAULT_PHOTO_RETENTION_DAYS
         },
         sleep: {
@@ -1103,6 +1182,268 @@
         byId.set(r.id, prev ? { ...prev, ...r, image: r.image || prev.image || null } : { ...r });
       });
       return Array.from(byId.values()).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    }
+
+    function mergeDietSummaries(remote, local, keyField) {
+      const byKey = new Map();
+      [...(remote || []), ...(local || [])].forEach(s => {
+        const k = s?.[keyField];
+        if (!k) return;
+        const prev = byKey.get(k);
+        if (!prev || (s.generatedAt || 0) >= (prev.generatedAt || 0)) byKey.set(k, { ...prev, ...s });
+      });
+      return Array.from(byKey.values()).sort((a, b) => (b[keyField] || '').localeCompare(a[keyField] || ''));
+    }
+
+    function ensureDietSchema() {
+      if (!db.diet) db.diet = {};
+      if (!Array.isArray(db.diet.records)) db.diet.records = [];
+      if (!Array.isArray(db.diet.weeklySummaries)) db.diet.weeklySummaries = [];
+      if (!Array.isArray(db.diet.monthlySummaries)) db.diet.monthlySummaries = [];
+    }
+
+    function parseDateAtNoon(dateStr) {
+      return new Date((dateStr || todayStr()) + 'T12:00:00');
+    }
+
+    function formatDateYMD(d) {
+      return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+    }
+
+    function addDaysStr(dateStr, days) {
+      const d = parseDateAtNoon(dateStr);
+      d.setDate(d.getDate() + days);
+      return formatDateYMD(d);
+    }
+
+    function getWeekStart(dateStr) {
+      const d = parseDateAtNoon(dateStr);
+      const day = d.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      d.setDate(d.getDate() + diff);
+      return formatDateYMD(d);
+    }
+
+    function getWeekEnd(weekStart) {
+      return addDaysStr(weekStart, 6);
+    }
+
+    function getMonthKey(dateStr) {
+      return (dateStr || '').slice(0, 7);
+    }
+
+    function sumDietNutrients(records) {
+      const totals = { calories: 0, carbs: 0, protein: 0, fat: 0, mealCount: 0 };
+      (records || []).forEach(r => {
+        totals.calories += r.calories || 0;
+        totals.carbs += r.carbs || 0;
+        totals.protein += r.protein || 0;
+        totals.fat += r.fat || 0;
+        totals.mealCount += 1;
+      });
+      return totals;
+    }
+
+    function buildDailyTotalsMap(records) {
+      const map = {};
+      (records || []).forEach(r => {
+        if (!r.date) return;
+        if (!map[r.date]) map[r.date] = { calories: 0, carbs: 0, protein: 0, fat: 0, meals: 0 };
+        map[r.date].calories += r.calories || 0;
+        map[r.date].carbs += r.carbs || 0;
+        map[r.date].protein += r.protein || 0;
+        map[r.date].fat += r.fat || 0;
+        map[r.date].meals += 1;
+      });
+      return map;
+    }
+
+    function buildWeeklySummary(weekStart, records) {
+      const weekEnd = getWeekEnd(weekStart);
+      const dailyTotals = buildDailyTotalsMap(records);
+      const totals = sumDietNutrients(records);
+      return {
+        weekStart,
+        weekEnd,
+        ...totals,
+        daysLogged: Object.keys(dailyTotals).length,
+        dailyTotals,
+        generatedAt: Date.now()
+      };
+    }
+
+    function buildMonthlySummary(monthKey, weekSummaries, extraRecords) {
+      const dailyTotals = {};
+      (weekSummaries || []).forEach(w => {
+        Object.entries(w.dailyTotals || {}).forEach(([d, v]) => {
+          if (getMonthKey(d) !== monthKey) return;
+          dailyTotals[d] = { ...v };
+        });
+      });
+      (extraRecords || []).forEach(r => {
+        if (getMonthKey(r.date) !== monthKey) return;
+        if (!dailyTotals[r.date]) dailyTotals[r.date] = { calories: 0, carbs: 0, protein: 0, fat: 0, meals: 0 };
+        dailyTotals[r.date].calories += r.calories || 0;
+        dailyTotals[r.date].carbs += r.carbs || 0;
+        dailyTotals[r.date].protein += r.protein || 0;
+        dailyTotals[r.date].fat += r.fat || 0;
+        dailyTotals[r.date].meals += 1;
+      });
+      const totals = { calories: 0, carbs: 0, protein: 0, fat: 0, mealCount: 0 };
+      Object.values(dailyTotals).forEach(d => {
+        totals.calories += d.calories || 0;
+        totals.carbs += d.carbs || 0;
+        totals.protein += d.protein || 0;
+        totals.fat += d.fat || 0;
+        totals.mealCount += d.meals || 0;
+      });
+      const daysLogged = Object.keys(dailyTotals).length;
+      return {
+        monthKey,
+        ...totals,
+        daysLogged,
+        avgCaloriesPerDay: daysLogged ? Math.round(totals.calories / daysLogged) : 0,
+        generatedAt: Date.now()
+      };
+    }
+
+    function isWeekComplete(weekStart, today) {
+      return today > getWeekEnd(weekStart);
+    }
+
+    function isMonthComplete(monthKey, today) {
+      const [y, m] = monthKey.split('-').map(Number);
+      const lastDay = new Date(y, m, 0);
+      return today > formatDateYMD(lastDay);
+    }
+
+    function maintainDietArchives() {
+      ensureDietSchema();
+      const today = todayStr();
+      const currentWeekStart = getWeekStart(today);
+      let changed = false;
+      const records = db.diet.records || [];
+
+      const recordsByWeek = {};
+      records.forEach(r => {
+        if (!r.date) return;
+        const ws = getWeekStart(r.date);
+        if (!recordsByWeek[ws]) recordsByWeek[ws] = [];
+        recordsByWeek[ws].push(r);
+      });
+
+      Object.keys(recordsByWeek).forEach(weekStart => {
+        if (!isWeekComplete(weekStart, today)) return;
+        if (db.diet.weeklySummaries.some(s => s.weekStart === weekStart)) return;
+        db.diet.weeklySummaries.push(buildWeeklySummary(weekStart, recordsByWeek[weekStart]));
+        changed = true;
+      });
+
+      const archivedWeeks = new Set(db.diet.weeklySummaries.map(s => s.weekStart));
+      const keptRecords = records.filter(r => {
+        const ws = getWeekStart(r.date);
+        return ws >= currentWeekStart || !archivedWeeks.has(ws);
+      });
+      if (keptRecords.length !== records.length) {
+        db.diet.records = keptRecords;
+        changed = true;
+      }
+
+      const monthsNeeded = new Set();
+      db.diet.weeklySummaries.forEach(w => {
+        let d = w.weekStart;
+        while (d <= w.weekEnd) {
+          monthsNeeded.add(getMonthKey(d));
+          d = addDaysStr(d, 1);
+        }
+      });
+      (db.diet.records || []).forEach(r => {
+        if (r.date) monthsNeeded.add(getMonthKey(r.date));
+      });
+
+      monthsNeeded.forEach(monthKey => {
+        if (!isMonthComplete(monthKey, today)) return;
+        if (db.diet.monthlySummaries.some(m => m.monthKey === monthKey)) return;
+        const monthStart = monthKey + '-01';
+        const [y, m] = monthKey.split('-').map(Number);
+        const monthEnd = formatDateYMD(new Date(y, m, 0));
+        const weeks = db.diet.weeklySummaries.filter(w => w.weekStart <= monthEnd && w.weekEnd >= monthStart);
+        const loose = (db.diet.records || []).filter(r => getMonthKey(r.date) === monthKey);
+        if (!weeks.length && !loose.length) return;
+        db.diet.monthlySummaries.push(buildMonthlySummary(monthKey, weeks, loose));
+        changed = true;
+      });
+
+      const cutoff = addDaysStr(today, -DIET_WEEKLY_RETENTION_DAYS);
+      const beforeWeekly = db.diet.weeklySummaries.length;
+      db.diet.weeklySummaries = db.diet.weeklySummaries.filter(w => {
+        if (w.weekEnd >= cutoff) return true;
+        const mk = getMonthKey(w.weekEnd);
+        return !db.diet.monthlySummaries.some(m => m.monthKey === mk);
+      });
+      if (db.diet.weeklySummaries.length !== beforeWeekly) changed = true;
+
+      db.diet.weeklySummaries.sort((a, b) => (b.weekStart || '').localeCompare(a.weekStart || ''));
+      db.diet.monthlySummaries.sort((a, b) => (b.monthKey || '').localeCompare(a.monthKey || ''));
+      return changed;
+    }
+
+    function getDietDayTotals(dateStr) {
+      ensureDietSchema();
+      const live = (db.diet.records || []).filter(r => r.date === dateStr);
+      if (live.length) {
+        const t = sumDietNutrients(live);
+        return { calories: t.calories, carbs: t.carbs, protein: t.protein, fat: t.fat, meals: t.mealCount, source: 'live' };
+      }
+
+      const weekStart = getWeekStart(dateStr);
+      const weekly = db.diet.weeklySummaries.find(s => s.weekStart === weekStart);
+      if (weekly?.dailyTotals?.[dateStr]) {
+        const d = weekly.dailyTotals[dateStr];
+        return { calories: d.calories, carbs: d.carbs, protein: d.protein, fat: d.fat, meals: d.meals, source: 'weekly' };
+      }
+      return null;
+    }
+
+    function getDietDayRecords(dateStr) {
+      return (db.diet.records || []).filter(r => r.date === dateStr);
+    }
+
+    function downloadCsv(filename, rows) {
+      const csv = '\uFEFF' + rows.map(row =>
+        row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(',')
+      ).join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    function exportFinanceRecords(scope) {
+      const records = scope === 'month'
+        ? getMonthRecords()
+        : [...(db.finance.records || [])].sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.id || '').localeCompare(a.id || ''));
+      if (!records.length) {
+        showToast('沒有可匯出的紀錄', true);
+        return;
+      }
+      const headers = ['日期', '類型', '分類', '金額', '備註', '載具', '發票號碼'];
+      const rows = [headers, ...records.map(r => [
+        r.date,
+        r.type === 'income' ? '收入' : '支出',
+        r.category,
+        r.amount,
+        r.memo || '',
+        r.carrierUsed ? '是' : '否',
+        r.invoiceNumber || ''
+      ])];
+      const suffix = scope === 'month' ? `${currentYear}-${pad2(currentMonth + 1)}` : '全部';
+      downloadCsv(`vibe記帳_${suffix}_${todayStr()}.csv`, rows);
+      showToast(`已下載 ${records.length} 筆紀錄（可用 Excel 開啟）`);
     }
 
     function dbPayload(stripImages) {
@@ -1636,6 +1977,8 @@
         diet: {
           profile,
           records: dietRecords,
+          weeklySummaries: mergeDietSummaries(remote.diet?.weeklySummaries, local.diet?.weeklySummaries, 'weekStart'),
+          monthlySummaries: mergeDietSummaries(remote.diet?.monthlySummaries, local.diet?.monthlySummaries, 'monthKey'),
           photoRetentionDays: typeof local.diet?.photoRetentionDays === 'number'
             ? local.diet.photoRetentionDays
             : (typeof remote.diet?.photoRetentionDays === 'number' ? remote.diet.photoRetentionDays : DEFAULT_PHOTO_RETENTION_DAYS)
@@ -1705,6 +2048,8 @@
 
     async function mutateAndSync(mutator) {
       mutator();
+      ensureDietSchema();
+      maintainDietArchives();
       purgeExpiredDietImages();
       saveLocalCache();
       renderAll();
@@ -2293,7 +2638,154 @@
       document.getElementById(`${prefix}FatBar`).style.width = (ratios.fat / total * 100) + '%';
     }
 
+    function renderDietSummaries() {
+      ensureDietSchema();
+      const weeklyList = document.getElementById('dietWeeklyList');
+      const weeklyEmpty = document.getElementById('dietWeeklyEmpty');
+      const monthlyList = document.getElementById('dietMonthlyList');
+      const monthlyEmpty = document.getElementById('dietMonthlyEmpty');
+      if (!weeklyList) return;
+
+      const weeks = db.diet.weeklySummaries || [];
+      if (!weeks.length) {
+        weeklyList.innerHTML = '';
+        weeklyEmpty.classList.remove('hidden');
+      } else {
+        weeklyEmpty.classList.add('hidden');
+        weeklyList.innerHTML = weeks.map(w => `
+          <div class="bg-ios-bg rounded-2xl p-4">
+            <div class="flex justify-between items-start gap-2 mb-1">
+              <p class="text-sm font-semibold">${w.weekStart} ~ ${w.weekEnd}</p>
+              <span class="text-xs text-ios-gray shrink-0">${w.daysLogged || 0} 天</span>
+            </div>
+            <p class="text-lg font-bold text-ios-red">${Math.round(w.calories || 0)} <span class="text-xs font-normal text-ios-gray">kcal</span></p>
+            <p class="text-[11px] text-ios-gray mt-1">日均 ${w.daysLogged ? Math.round((w.calories || 0) / w.daysLogged) : 0} kcal · 碳 ${Math.round(w.carbs || 0)}g · 蛋 ${Math.round(w.protein || 0)}g · 脂 ${Math.round(w.fat || 0)}g · ${w.mealCount || 0} 餐</p>
+          </div>
+        `).join('');
+      }
+
+      const months = db.diet.monthlySummaries || [];
+      if (!months.length) {
+        monthlyList.innerHTML = '';
+        monthlyEmpty.classList.remove('hidden');
+      } else {
+        monthlyEmpty.classList.add('hidden');
+        monthlyList.innerHTML = months.map(m => {
+          const [y, mo] = (m.monthKey || '').split('-');
+          const label = y && mo ? `${y}年${parseInt(mo, 10)}月` : m.monthKey;
+          return `
+            <div class="bg-ios-bg rounded-2xl p-4">
+              <div class="flex justify-between items-start gap-2 mb-1">
+                <p class="text-sm font-semibold">${label}</p>
+                <span class="text-xs text-ios-gray shrink-0">${m.daysLogged || 0} 天</span>
+              </div>
+              <p class="text-lg font-bold text-ios-red">${Math.round(m.calories || 0)} <span class="text-xs font-normal text-ios-gray">kcal</span></p>
+              <p class="text-[11px] text-ios-gray mt-1">日均 ${m.avgCaloriesPerDay || 0} kcal · 碳 ${Math.round(m.carbs || 0)}g · 蛋 ${Math.round(m.protein || 0)}g · 脂 ${Math.round(m.fat || 0)}g · ${m.mealCount || 0} 餐</p>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function renderDietCalendar() {
+      document.getElementById('dietCalMonthLabel').textContent = monthLabel(dietCalYear, dietCalMonth);
+      const grid = document.getElementById('dietCalendarGrid');
+      if (!grid) return;
+
+      const first = new Date(dietCalYear, dietCalMonth, 1);
+      const lastDate = new Date(dietCalYear, dietCalMonth + 1, 0).getDate();
+      const startPad = (first.getDay() + 6) % 7;
+      const today = todayStr();
+      let html = '';
+
+      for (let i = 0; i < startPad; i++) {
+        html += '<div class="diet-cal-cell rounded-lg"></div>';
+      }
+      for (let day = 1; day <= lastDate; day++) {
+        const dateStr = `${dietCalYear}-${pad2(dietCalMonth + 1)}-${pad2(day)}`;
+        const totals = getDietDayTotals(dateStr);
+        const hasData = !!totals && (totals.calories > 0 || totals.meals > 0);
+        const isToday = dateStr === today;
+        html += `
+          <button type="button" data-diet-day="${dateStr}" class="diet-cal-cell rounded-lg p-1 text-center active:scale-95 transition-transform ${hasData ? 'has-data' : 'bg-ios-bg/40'} ${isToday ? 'is-today' : ''}">
+            <span class="block text-[11px] font-semibold">${day}</span>
+            ${hasData ? `<span class="block text-[9px] text-ios-red font-bold leading-tight">${Math.round(totals.calories)}</span>` : '<span class="block text-[9px] text-transparent">·</span>'}
+          </button>
+        `;
+      }
+      grid.innerHTML = html;
+      renderDietSummaries();
+    }
+
+    function setDietView(view) {
+      dietView = view;
+      document.querySelectorAll('[data-diet-view]').forEach(btn => {
+        const active = btn.dataset.dietView === view;
+        btn.classList.toggle('active', active);
+        btn.classList.toggle('text-ios-gray', !active);
+      });
+      document.getElementById('dietTodayPanel').classList.toggle('hidden', view !== 'today');
+      document.getElementById('dietCalendarPanel').classList.toggle('hidden', view !== 'calendar');
+      if (view === 'calendar') renderDietCalendar();
+    }
+
+    function openDietDayModal(dateStr) {
+      const totals = getDietDayTotals(dateStr);
+      const records = getDietDayRecords(dateStr);
+      const d = parseDateAtNoon(dateStr);
+      document.getElementById('dietDayModalTitle').textContent = d.toLocaleDateString('zh-TW', {
+        year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+      });
+
+      const summary = document.getElementById('dietDayModalSummary');
+      const list = document.getElementById('dietDayModalList');
+      const empty = document.getElementById('dietDayModalEmpty');
+
+      if (!totals) {
+        summary.innerHTML = '';
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        empty.textContent = '此日無飲食紀錄';
+        openModal('modalDietDay');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      summary.innerHTML = `
+        <div class="bg-ios-bg rounded-xl p-3 text-center col-span-2">
+          <p class="text-xs text-ios-gray">總熱量</p>
+          <p class="text-xl font-bold text-ios-red">${Math.round(totals.calories)} kcal</p>
+        </div>
+        <div class="bg-ios-bg rounded-xl p-3 text-center">
+          <p class="text-xs text-ios-gray">碳水</p>
+          <p class="text-sm font-bold">${Math.round(totals.carbs)}g</p>
+        </div>
+        <div class="bg-ios-bg rounded-xl p-3 text-center">
+          <p class="text-xs text-ios-gray">蛋白 · 脂肪</p>
+          <p class="text-sm font-bold">${Math.round(totals.protein)}g · ${Math.round(totals.fat)}g</p>
+        </div>
+      `;
+
+      if (records.length) {
+        list.innerHTML = records.map(r => `
+          <div class="bg-ios-bg rounded-xl p-3 flex justify-between gap-2">
+            <div class="min-w-0">
+              <p class="text-sm font-semibold truncate">${r.name || '飲食'}</p>
+              <p class="text-[11px] text-ios-gray">碳 ${Math.round(r.carbs || 0)} · 蛋 ${Math.round(r.protein || 0)} · 脂 ${Math.round(r.fat || 0)}</p>
+            </div>
+            <p class="text-sm font-bold text-ios-red shrink-0">${Math.round(r.calories || 0)}</p>
+          </div>
+        `).join('');
+      } else {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        empty.textContent = totals.source === 'weekly' ? '詳細餐點已歸檔，僅保留當日總計' : '此日無詳細紀錄';
+      }
+      openModal('modalDietDay');
+    }
+
     function renderDiet() {
+      setDietView(dietView);
       renderFoodPicker();
       const retention = getPhotoRetentionDays();
       const photoSelect = document.getElementById('photoRetentionSetting');
@@ -2804,6 +3296,8 @@
 
       document.getElementById('btnAddIncome').addEventListener('click', () => openFinanceModal('income'));
       document.getElementById('btnAddExpense').addEventListener('click', () => openFinanceModal('expense'));
+      document.getElementById('btnExportFinanceMonth').addEventListener('click', () => exportFinanceRecords('month'));
+      document.getElementById('btnExportFinanceAll').addEventListener('click', () => exportFinanceRecords('all'));
 
       document.getElementById('btnSaveFinance').addEventListener('click', async () => {
         const amount = parseFloat(document.getElementById('finAmount').value);
@@ -2991,6 +3485,25 @@
         resetDietForm();
         document.getElementById('dietModalTitle').textContent = '自訂飲食紀錄';
         openModal('modalDiet');
+      });
+
+      document.querySelectorAll('[data-diet-view]').forEach(btn => {
+        btn.addEventListener('click', () => setDietView(btn.dataset.dietView));
+      });
+      document.getElementById('btnDietCalPrev').addEventListener('click', () => {
+        dietCalMonth--;
+        if (dietCalMonth < 0) { dietCalMonth = 11; dietCalYear--; }
+        renderDietCalendar();
+      });
+      document.getElementById('btnDietCalNext').addEventListener('click', () => {
+        dietCalMonth++;
+        if (dietCalMonth > 11) { dietCalMonth = 0; dietCalYear++; }
+        renderDietCalendar();
+      });
+      document.getElementById('dietCalendarGrid').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-diet-day]');
+        if (!btn) return;
+        openDietDayModal(btn.dataset.dietDay);
       });
 
       document.getElementById('btnToggleDietDetail').addEventListener('click', () => {
@@ -3284,7 +3797,8 @@
         setSyncStatus('尚未設定 GitHub');
       }
       purgeExpiredDietImages();
-      saveLocalCache();
+      ensureDietSchema();
+      if (maintainDietArchives()) saveLocalCache();
       renderAll();
       checkSubscriptionReminders();
       document.addEventListener('visibilitychange', () => {

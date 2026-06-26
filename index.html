@@ -68,8 +68,6 @@
     .sync-spin { animation: spin 0.8s linear infinite; }
     @keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
     .pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
-    #carrierBarcode svg { max-width: 100%; height: auto; }
-    #qrScannerVideo { object-fit: cover; transform: scaleX(-1); }
 
     /* Theme toggle */
     .theme-seg { display: flex; background: #E5E5EA; border-radius: 12px; padding: 3px; }
@@ -148,8 +146,6 @@
     .fin-cal-cell.is-today { box-shadow: inset 0 0 0 2px #007AFF; }
     html.dark .fin-cal-cell.is-today { box-shadow: inset 0 0 0 2px #0A84FF; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 </head>
 <body class="bg-ios-bg text-gray-900 min-h-screen">
 
@@ -181,7 +177,7 @@
     <!-- ===== FINANCE TAB ===== -->
     <section id="tabFinance" class="tab-panel space-y-4">
 
-      <!-- Month Switcher -->
+      <!-- Month Switcher + 月結 -->
       <div class="flex items-center justify-between bg-white rounded-2xl shadow-sm px-4 py-3">
         <button id="btnPrevMonth" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
           <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
@@ -192,74 +188,21 @@
         </button>
       </div>
 
-      <!-- Dashboard -->
       <div class="grid grid-cols-3 gap-3">
         <div class="bg-white rounded-2xl shadow-sm p-4 text-center">
-          <p class="text-xs text-ios-gray mb-1">收入</p>
+          <p class="text-xs text-ios-gray mb-1">月收入</p>
           <p id="totalIncome" class="text-lg font-bold text-ios-green">$0</p>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-4 text-center">
-          <p class="text-xs text-ios-gray mb-1">支出</p>
+          <p class="text-xs text-ios-gray mb-1">月支出</p>
           <p id="totalExpense" class="text-lg font-bold text-ios-red">$0</p>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-4 text-center">
-          <p class="text-xs text-ios-gray mb-1">盈餘</p>
+          <p class="text-xs text-ios-gray mb-1">月盈餘</p>
           <p id="totalSurplus" class="text-lg font-bold text-ios-blue">$0</p>
         </div>
       </div>
 
-      <!-- Daily Summary -->
-      <div class="bg-white rounded-3xl shadow-sm p-5">
-        <div class="flex items-center gap-2 mb-4">
-          <button type="button" id="btnFinDayPrev" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform shrink-0">
-            <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-          </button>
-          <div class="flex-1 text-center min-w-0">
-            <h2 class="text-base font-bold">每日小結</h2>
-            <p id="financeTodayDateLabel" class="text-xs text-ios-gray mt-0.5 truncate"></p>
-          </div>
-          <button type="button" id="btnFinDayNext" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform shrink-0">
-            <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-          </button>
-        </div>
-        <div class="grid grid-cols-3 gap-3 mb-4">
-          <div class="bg-ios-bg rounded-2xl p-3 text-center">
-            <p id="financeDayIncomeLbl" class="text-xs text-ios-gray">當日收入</p>
-            <p id="financeTodayIncome" class="text-lg font-bold text-ios-green">$0</p>
-          </div>
-          <div class="bg-ios-bg rounded-2xl p-3 text-center">
-            <p id="financeDayExpenseLbl" class="text-xs text-ios-gray">當日支出</p>
-            <p id="financeTodayExpense" class="text-lg font-bold text-ios-red">$0</p>
-          </div>
-          <div class="bg-ios-bg rounded-2xl p-3 text-center">
-            <p id="financeDaySurplusLbl" class="text-xs text-ios-gray">當日盈餘</p>
-            <p id="financeTodaySurplus" class="text-lg font-bold text-ios-blue">$0</p>
-          </div>
-        </div>
-        <div id="financeTodayCategories" class="space-y-2 hidden"></div>
-        <p id="financeTodayEmpty" class="text-center text-ios-gray text-sm py-2">此日尚無紀錄</p>
-        <p id="financeTodayCount" class="text-xs text-ios-gray text-center mt-2 hidden"></p>
-      </div>
-
-      <!-- Finance Calendar -->
-      <div class="bg-white rounded-3xl shadow-sm p-5">
-        <div class="flex items-center justify-between mb-4">
-          <button type="button" id="btnFinCalPrev" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
-            <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-          </button>
-          <span id="financeCalMonthLabel" class="text-base font-semibold"></span>
-          <button type="button" id="btnFinCalNext" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
-            <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-          </button>
-        </div>
-        <div class="grid grid-cols-7 gap-1 mb-1 text-center text-[10px] text-ios-gray font-medium">
-          <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
-        </div>
-        <div id="financeCalendarGrid" class="grid grid-cols-7 gap-1"></div>
-        <p class="text-[10px] text-ios-gray mt-3 text-center">點日期切換小結；紅底為有支出</p>
-      </div>
-
-      <!-- Subscription Reminders -->
       <div id="subAlertBanner" class="hidden bg-orange-50 border border-orange-200 rounded-2xl p-4">
         <div class="flex items-start gap-2">
           <span class="text-lg">⏰</span>
@@ -270,73 +213,45 @@
         </div>
       </div>
 
-      <!-- Carrier Card -->
-      <div class="bg-white rounded-3xl shadow-sm p-5">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-base font-bold">電子發票載具</h2>
-          <button id="btnEditCarrier" class="text-xs text-ios-blue font-semibold active:scale-95 transition-transform">設定</button>
-        </div>
-        <div id="carrierEmpty" class="text-center py-4">
-          <p class="text-sm text-ios-gray mb-3">尚未設定手機條碼載具</p>
-          <button id="btnSetupCarrier" class="text-sm text-ios-blue font-semibold active:scale-95 transition-transform">＋ 新增載具</button>
-        </div>
-        <div id="carrierDisplay" class="hidden">
-          <div class="bg-ios-bg rounded-2xl p-4 flex flex-col items-center">
-            <svg id="carrierBarcode"></svg>
-            <p id="carrierCodeText" class="text-sm font-mono font-bold mt-2 tracking-wider"></p>
+      <!-- Calendar + Day Records -->
+      <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
+        <div class="p-5 pb-3">
+          <div class="grid grid-cols-7 gap-1 mb-1 text-center text-[10px] text-ios-gray font-medium">
+            <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
           </div>
-          <div class="flex gap-2 mt-3">
-            <button id="btnCopyCarrier" class="flex-1 bg-ios-bg text-ios-blue text-sm font-semibold py-2.5 rounded-xl active:scale-95 transition-transform">複製條碼</button>
-            <button id="btnScanInvoice" class="flex-1 bg-ios-blue text-white text-sm font-semibold py-2.5 rounded-xl active:scale-95 transition-transform">掃描發票</button>
-          </div>
-          <p id="carrierStats" class="text-xs text-ios-gray text-center mt-2"></p>
+          <div id="financeCalendarGrid" class="grid grid-cols-7 gap-1"></div>
+          <p class="text-[10px] text-ios-gray mt-2 text-center">點日期查看明細；紅底為有支出</p>
+        </div>
+        <div class="border-t border-gray-100 px-5 pt-3 pb-4">
+          <p id="financeListDateLabel" class="text-xs text-ios-gray">當日明細</p>
+          <div id="financeList" class="space-y-2 mt-2"></div>
+          <p id="financeEmpty" class="text-center text-ios-gray text-sm py-6 hidden">此日尚無紀錄</p>
         </div>
       </div>
 
-      <!-- Subscriptions -->
-      <div class="bg-white rounded-3xl shadow-sm p-5">
-        <div class="flex items-center justify-between mb-3">
-          <div>
-            <h2 class="text-base font-bold">每月訂閱</h2>
-            <p id="subMonthlyTotal" class="text-xs text-ios-gray mt-0.5">月固定支出 —</p>
-          </div>
-          <button id="btnAddSubscription" class="w-8 h-8 flex items-center justify-center rounded-full bg-ios-blue text-white active:scale-95 transition-transform">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-          </button>
-        </div>
-        <div class="flex items-center justify-between bg-ios-bg rounded-xl px-3 py-2.5 mb-3">
-          <span class="text-xs text-ios-gray">扣款提醒通知</span>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input id="subNotifyToggle" type="checkbox" class="sr-only peer">
-            <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:bg-ios-green transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
-          </label>
-        </div>
-        <div id="subscriptionList" class="space-y-2"></div>
-        <p id="subscriptionEmpty" class="text-center text-ios-gray text-sm py-4 hidden">尚無訂閱項目</p>
-      </div>
-
-      <!-- Export for reconciliation -->
-      <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between gap-3">
-        <div>
-          <p class="text-sm font-semibold">對帳匯出</p>
-          <p class="text-[11px] text-ios-gray">保留每筆明細，可下載 Excel 表格</p>
-        </div>
-        <div class="flex gap-2 shrink-0">
-          <button type="button" id="btnExportFinanceMonth" class="text-xs font-semibold px-3 py-2 rounded-xl bg-ios-bg text-ios-blue active:scale-95 transition-transform">本月</button>
-          <button type="button" id="btnExportFinanceAll" class="text-xs font-semibold px-3 py-2 rounded-xl bg-ios-blue text-white active:scale-95 transition-transform">全部</button>
-        </div>
-      </div>
-
-      <!-- Add Buttons -->
       <div class="flex gap-3">
         <button id="btnAddIncome" class="flex-1 bg-ios-green text-white font-semibold py-3 rounded-2xl shadow-sm active:scale-95 transition-transform">＋ 收入</button>
         <button id="btnAddExpense" class="flex-1 bg-ios-red text-white font-semibold py-3 rounded-2xl shadow-sm active:scale-95 transition-transform">＋ 支出</button>
       </div>
 
-      <!-- Records List -->
-      <p id="financeListDateLabel" class="text-xs text-ios-gray px-1">當日明細</p>
-      <div id="financeList" class="space-y-2"></div>
-      <p id="financeEmpty" class="text-center text-ios-gray text-sm py-8 hidden">此日尚無紀錄</p>
+      <!-- 功能列表 -->
+      <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
+        <p class="text-xs text-ios-gray font-medium px-5 pt-4 pb-1">功能</p>
+        <button type="button" id="btnOpenFinanceSubs" class="w-full flex items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 active:bg-ios-bg transition-colors text-left">
+          <div class="min-w-0">
+            <p class="text-sm font-semibold">每月訂閱</p>
+            <p id="finToolsSubHint" class="text-[11px] text-ios-gray truncate">月固定支出 —</p>
+          </div>
+          <svg class="w-4 h-4 text-ios-gray shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <button type="button" id="btnOpenFinanceExport" class="w-full flex items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 active:bg-ios-bg transition-colors text-left">
+          <div class="min-w-0">
+            <p class="text-sm font-semibold">對帳匯出</p>
+            <p class="text-[11px] text-ios-gray">下載 Excel 表格核對帳務</p>
+          </div>
+          <svg class="w-4 h-4 text-ios-gray shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
     </section>
 
     <!-- ===== DIET TAB ===== -->
@@ -781,14 +696,6 @@
           <label class="text-xs text-ios-gray">備忘錄</label>
           <input id="finMemo" type="text" placeholder="選填" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
         </div>
-        <label id="finCarrierWrap" class="flex items-center justify-between bg-ios-bg rounded-xl px-4 py-3 cursor-pointer hidden">
-          <div>
-            <span class="text-sm font-medium">載具發票紀錄</span>
-            <p class="text-[11px] text-ios-gray">標記此筆為載具存入</p>
-          </div>
-          <input id="finCarrierUsed" type="checkbox" class="w-5 h-5 rounded accent-ios-blue">
-        </label>
-        <input id="finInvoiceNumber" type="hidden">
       </div>
       <button id="btnSaveFinance" class="w-full mt-5 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存</button>
     </div>
@@ -807,19 +714,49 @@
     </div>
   </div>
 
-  <!-- Carrier Modal -->
-  <div id="modalCarrier" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black/40" data-close="modalCarrier"></div>
-    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom">
+  <!-- Finance Subscriptions Panel -->
+  <div id="modalFinanceSubscriptions" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalFinanceSubscriptions"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom max-h-[85vh] overflow-y-auto">
       <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
-      <h2 class="text-lg font-bold mb-1">手機條碼載具</h2>
-      <p class="text-xs text-ios-gray mb-4">格式：/ 開頭 + 7 碼英數（例：/ABC1234）</p>
-      <input id="carrierInput" type="text" autocomplete="off" placeholder="/XXXXXXX" class="w-full bg-ios-bg rounded-xl px-4 py-3 font-mono text-center text-lg tracking-widest border-0 outline-none focus:ring-2 focus:ring-ios-blue/30 uppercase">
-      <button id="btnSaveCarrier" class="w-full mt-5 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存載具</button>
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h2 class="text-lg font-bold">每月訂閱</h2>
+          <p id="subMonthlyTotal" class="text-xs text-ios-gray mt-0.5">月固定支出 —</p>
+        </div>
+        <button id="btnAddSubscription" class="w-8 h-8 flex items-center justify-center rounded-full bg-ios-blue text-white active:scale-95 transition-transform">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        </button>
+      </div>
+      <div class="flex items-center justify-between bg-ios-bg rounded-xl px-3 py-2.5 mb-3">
+        <span class="text-xs text-ios-gray">扣款提醒通知</span>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input id="subNotifyToggle" type="checkbox" class="sr-only peer">
+          <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:bg-ios-green transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+        </label>
+      </div>
+      <div id="subscriptionList" class="space-y-2"></div>
+      <p id="subscriptionEmpty" class="text-center text-ios-gray text-sm py-4 hidden">尚無訂閱項目</p>
+      <button type="button" data-close="modalFinanceSubscriptions" class="w-full mt-4 bg-ios-bg text-ios-gray font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">關閉</button>
     </div>
   </div>
 
-  <!-- Subscription Modal -->
+  <!-- Finance Export Panel -->
+  <div id="modalFinanceExport" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalFinanceExport"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom">
+      <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
+      <h2 class="text-lg font-bold mb-1">對帳匯出</h2>
+      <p class="text-xs text-ios-gray mb-5">保留每筆明細，可下載 Excel 表格</p>
+      <div class="flex gap-3">
+        <button type="button" id="btnExportFinanceMonth" class="flex-1 bg-ios-bg text-ios-blue font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">匯出本月</button>
+        <button type="button" id="btnExportFinanceAll" class="flex-1 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">匯出全部</button>
+      </div>
+      <button type="button" data-close="modalFinanceExport" class="w-full mt-3 bg-ios-bg text-ios-gray font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">關閉</button>
+    </div>
+  </div>
+
+  <!-- Subscription Edit Modal -->
   <div id="modalSubscription" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black/40" data-close="modalSubscription"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom max-h-[85vh] overflow-y-auto">
@@ -867,29 +804,6 @@
         </div>
       </div>
       <button id="btnSaveSubscription" class="w-full mt-5 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存</button>
-    </div>
-  </div>
-
-  <!-- QR Scanner Modal -->
-  <div id="modalScanner" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black" data-close="modalScanner"></div>
-    <div class="absolute inset-0 flex flex-col safe-top safe-bottom">
-      <div class="flex items-center justify-between px-4 py-3">
-        <button data-close="modalScanner" class="text-white text-sm font-semibold active:scale-95 transition-transform">取消</button>
-        <span class="text-white text-sm font-semibold">掃描電子發票 QR</span>
-        <div class="w-10"></div>
-      </div>
-      <div class="flex-1 relative mx-4 mb-4 rounded-3xl overflow-hidden">
-        <video id="qrScannerVideo" class="w-full h-full" playsinline muted></video>
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div class="w-56 h-56 border-2 border-white/60 rounded-2xl"></div>
-        </div>
-      </div>
-      <p class="text-white/70 text-xs text-center px-6 pb-4">對準發票左側 QR Code，將自動帶入記帳</p>
-      <label class="mx-4 mb-6 text-center text-white/80 text-sm underline cursor-pointer active:scale-95 transition-transform">
-        或從相機拍照選取
-        <input id="qrFileInput" type="file" accept="image/*" capture="environment" class="hidden">
-      </label>
     </div>
   </div>
 
@@ -985,7 +899,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.4.0';
+    const APP_VERSION = '1.4.1';
     const DEFAULT_APP_ICON = 'green-moon';
     const ICON_THEMES = {
       'blue-v': '#007AFF',
@@ -1001,7 +915,6 @@
     const GH_TOKEN_KEY = 'vibe_gh_token';
     const THEME_KEY = 'vibe_theme';
     const LOCAL_DB_KEY = 'vibe_tracker_db_cache';
-    const CARRIER_KEY = 'vibe_carrier_backup';
     const DIET_PROFILE_KEY = 'vibe_diet_profile_backup';
     const DEFAULT_SLEEP_TARGET = 8;
     const SLEEP_DEBT_DAYS = 7;
@@ -1103,7 +1016,6 @@
     let pendingDietImage = null;
     let isSyncing = false;
     let editingSubscriptionId = null;
-    let qrScannerStream = null;
     let trainYear = new Date().getFullYear();
     let trainMonth = new Date().getMonth();
     let pendingTrainPart = null;
@@ -1117,7 +1029,7 @@
         finance: {
           records: [],
           subscriptions: [],
-          carrier: { mobileBarcode: '', notifyEnabled: true, remindDaysBefore: 3 }
+          subNotifyEnabled: true
         },
         diet: {
           profile: null,
@@ -1171,8 +1083,6 @@
 
     function saveLocalCache() {
       touchMeta();
-      const code = db.finance?.carrier?.mobileBarcode || '';
-      if (code) localStorage.setItem(CARRIER_KEY, code);
       if (db.diet?.profile?.tdee) {
         localStorage.setItem(DIET_PROFILE_KEY, JSON.stringify(db.diet.profile));
       }
@@ -1203,11 +1113,6 @@
       } catch { /* ignore */ }
       const partial = createEmptyDB();
       let hasPartial = false;
-      const code = localStorage.getItem(CARRIER_KEY);
-      if (code) {
-        partial.finance.carrier.mobileBarcode = code;
-        hasPartial = true;
-      }
       const profile = loadDietProfileBackup();
       if (profile?.tdee) {
         partial.diet.profile = profile;
@@ -1502,7 +1407,6 @@
     function dbNeedsCloudRepair(remote, merged) {
       const fixes = [];
       if (!hasValidProfile(remote?.diet?.profile) && hasValidProfile(merged.diet?.profile)) fixes.push('profile');
-      if (!(remote?.finance?.carrier?.mobileBarcode || '').trim() && (merged.finance?.carrier?.mobileBarcode || '').trim()) fixes.push('carrier');
       return fixes;
     }
 
@@ -1543,7 +1447,6 @@
     }
 
     function closeModal(id) {
-      if (id === 'modalScanner') stopQrScanner();
       document.getElementById(id).classList.add('hidden');
       document.body.style.overflow = '';
     }
@@ -1997,8 +1900,6 @@
       const localRecords = Array.isArray(localFin.records) ? localFin.records : [];
       const remoteSubs = Array.isArray(fin.subscriptions) ? fin.subscriptions : [];
       const localSubs = Array.isArray(localFin.subscriptions) ? localFin.subscriptions : [];
-      const remoteCarrier = (fin.carrier?.mobileBarcode || '').trim();
-      const localCarrier = (localFin.carrier?.mobileBarcode || localStorage.getItem(CARRIER_KEY) || '').trim();
       const remoteProfile = remote.diet?.profile;
       const localProfile = local.diet?.profile || loadDietProfileBackup();
       const remoteUpdated = remote.meta?.updatedAt || 0;
@@ -2034,11 +1935,11 @@
             ? localRecords
             : (remoteRecords.length ? remoteRecords : localRecords),
           subscriptions: remoteSubs.length && !newerIsLocal ? remoteSubs : (localSubs.length ? localSubs : remoteSubs),
-          carrier: {
-            mobileBarcode: remoteCarrier || localCarrier,
-            notifyEnabled: fin.carrier?.notifyEnabled ?? localFin.carrier?.notifyEnabled ?? true,
-            remindDaysBefore: fin.carrier?.remindDaysBefore ?? localFin.carrier?.remindDaysBefore ?? 3
-          }
+          subNotifyEnabled: typeof localFin.subNotifyEnabled === 'boolean'
+            ? localFin.subNotifyEnabled
+            : (typeof fin.subNotifyEnabled === 'boolean'
+              ? fin.subNotifyEnabled
+              : (fin.carrier?.notifyEnabled ?? localFin.carrier?.notifyEnabled ?? true))
         },
         diet: {
           profile,
@@ -2126,116 +2027,12 @@
       return ok;
     }
 
-    // ─── Carrier & Invoice ───
-
-    function validateCarrierCode(code) {
-      return /^\/[0-9A-Z.\-+]{7}$/.test(code.toUpperCase());
-    }
-
-    function renderCarrierBarcode(code) {
-      const svg = document.getElementById('carrierBarcode');
-      if (!code || typeof JsBarcode === 'undefined') return;
-      try {
-        JsBarcode(svg, code, {
-          format: 'CODE39',
-          lineColor: '#1C1C1E',
-          width: 2,
-          height: 72,
-          displayValue: false,
-          margin: 8
-        });
-      } catch {
-        svg.innerHTML = '';
-      }
-    }
-
-    function parseTaiwanInvoiceQR(raw) {
-      if (!raw || raw.length < 77) return null;
-      const invoiceNumber = raw.substring(0, 10);
-      const rocDate = raw.substring(10, 17);
-      const totalHex = raw.substring(29, 37);
-      const year = parseInt(rocDate.substring(0, 3), 10) + 1911;
-      const month = rocDate.substring(3, 5);
-      const day = rocDate.substring(5, 7);
-      const total = parseInt(totalHex, 16);
-      if (!invoiceNumber || isNaN(total) || total <= 0) return null;
-      return {
-        invoiceNumber,
-        date: `${year}-${month}-${day}`,
-        amount: total,
-        memo: `發票 ${invoiceNumber}`
-      };
-    }
-
-    function handleInvoiceScanResult(data) {
-      stopQrScanner();
-      closeModal('modalScanner');
-      if (!data) {
-        showToast('無法解析發票 QR Code', true);
-        return;
-      }
-      openFinanceModal('expense');
-      document.getElementById('finAmount').value = data.amount;
-      document.getElementById('finDate').value = data.date;
-      document.getElementById('finMemo').value = data.memo;
-      document.getElementById('finInvoiceNumber').value = data.invoiceNumber;
-      document.getElementById('finCarrierUsed').checked = true;
-      document.getElementById('finCategory').value = '食';
-      showToast('已帶入發票資訊，請確認後儲存');
-    }
-
-    function decodeQrFromImageData(imageData) {
-      if (typeof jsQR === 'undefined') return null;
-      const code = jsQR(imageData.data, imageData.width, imageData.height);
-      return code ? code.data : null;
-    }
-
-    async function startQrScanner() {
-      const video = document.getElementById('qrScannerVideo');
-      try {
-        qrScannerStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-        });
-        video.srcObject = qrScannerStream;
-        await video.play();
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const tick = () => {
-          if (!qrScannerStream) return;
-          if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0);
-            const raw = decodeQrFromImageData(ctx.getImageData(0, 0, canvas.width, canvas.height));
-            if (raw) {
-              const parsed = parseTaiwanInvoiceQR(raw);
-              if (parsed) { handleInvoiceScanResult(parsed); return; }
-            }
-          }
-          qrScanFrameId = requestAnimationFrame(tick);
-        };
-        qrScanFrameId = requestAnimationFrame(tick);
-      } catch {
-        showToast('無法開啟相機，請改用拍照選取', true);
-      }
-    }
-
-    function stopQrScanner() {
-      if (qrScanFrameId) { cancelAnimationFrame(qrScanFrameId); qrScanFrameId = null; }
-      if (qrScannerStream) {
-        qrScannerStream.getTracks().forEach(t => t.stop());
-        qrScannerStream = null;
-      }
-      const video = document.getElementById('qrScannerVideo');
-      if (video) video.srcObject = null;
-    }
-
-    function openQrScanner() {
-      openModal('modalScanner');
-      startQrScanner();
-    }
-
     // ─── Subscriptions ───
+
+    function financeSubNotifyEnabled() {
+      if (typeof db.finance.subNotifyEnabled === 'boolean') return db.finance.subNotifyEnabled;
+      return db.finance.carrier?.notifyEnabled !== false;
+    }
 
     function getBillingDate(year, month, day) {
       const lastDay = new Date(year, month + 1, 0).getDate();
@@ -2288,8 +2085,7 @@
     }
 
     function checkSubscriptionReminders() {
-      const carrier = db.finance.carrier || {};
-      if (!carrier.notifyEnabled) return;
+      if (!financeSubNotifyEnabled()) return;
       const NOTIFY_KEY = 'vibe_sub_notified';
       let notified = {};
       try { notified = JSON.parse(localStorage.getItem(NOTIFY_KEY)) || {}; } catch { /* ignore */ }
@@ -2298,7 +2094,7 @@
       (db.finance.subscriptions || []).forEach(sub => {
         if (sub.enabled === false) return;
         const { days, billingDate } = getDaysUntilBilling(sub);
-        const remind = sub.remindDaysBefore ?? carrier.remindDaysBefore ?? 3;
+        const remind = sub.remindDaysBefore ?? 3;
         const billingKey = `${sub.id}-${billingDate.toISOString().slice(0, 10)}`;
         if (days <= remind && days >= 0) {
           const dayKey = `${billingKey}-d${days}`;
@@ -2315,10 +2111,11 @@
 
     function renderSubscriptions() {
       const subs = db.finance.subscriptions || [];
-      const carrier = db.finance.carrier || {};
-      document.getElementById('subNotifyToggle').checked = carrier.notifyEnabled !== false;
-      document.getElementById('subMonthlyTotal').textContent =
-        '月固定支出 ' + formatMoney(getSubscriptionMonthlyTotal());
+      const subHint = '月固定支出 ' + formatMoney(getSubscriptionMonthlyTotal());
+      document.getElementById('subNotifyToggle').checked = financeSubNotifyEnabled();
+      document.getElementById('subMonthlyTotal').textContent = subHint;
+      const finToolsSubHint = document.getElementById('finToolsSubHint');
+      if (finToolsSubHint) finToolsSubHint.textContent = subHint;
 
       const upcoming = getUpcomingSubscriptions(7);
       const banner = document.getElementById('subAlertBanner');
@@ -2365,25 +2162,6 @@
           </button>
         </div>`;
       }).join('');
-    }
-
-    function renderCarrier() {
-      const code = (db.finance.carrier?.mobileBarcode || '').toUpperCase();
-      const empty = document.getElementById('carrierEmpty');
-      const display = document.getElementById('carrierDisplay');
-      if (!code) {
-        empty.classList.remove('hidden');
-        display.classList.add('hidden');
-        return;
-      }
-      empty.classList.add('hidden');
-      display.classList.remove('hidden');
-      document.getElementById('carrierCodeText').textContent = code;
-      renderCarrierBarcode(code);
-      const monthRecords = getMonthRecords();
-      const carrierCount = monthRecords.filter(r => r.carrierUsed).length;
-      document.getElementById('carrierStats').textContent =
-        `本月 ${carrierCount} 筆載具發票紀錄`;
     }
 
     // ─── BMR / TDEE / Macros ───
@@ -2570,10 +2348,6 @@
         .sort((a, b) => (b.id || '').localeCompare(a.id || ''));
     }
 
-    function getTodayFinanceRecords() {
-      return getFinanceRecordsForDate(todayStr());
-    }
-
     function getFinanceDayExpense(dateStr) {
       return (db.finance.records || [])
         .filter(r => r.date === dateStr && r.type === 'expense')
@@ -2609,7 +2383,6 @@
     }
 
     function renderFinanceCalendar() {
-      document.getElementById('financeCalMonthLabel').textContent = monthLabel(financeCalYear, financeCalMonth);
       const grid = document.getElementById('financeCalendarGrid');
       if (!grid) return;
 
@@ -2638,82 +2411,6 @@
       grid.innerHTML = html;
     }
 
-    function renderDailySummary() {
-      const dateStr = financeSelectedDate;
-      const dayRecords = getFinanceRecordsForDate(dateStr);
-      const isToday = dateStr === todayStr();
-      const dayWord = isToday ? '今日' : '當日';
-
-      document.getElementById('financeTodayDateLabel').textContent = parseDateAtNoon(dateStr).toLocaleDateString('zh-TW', {
-        year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
-      });
-      document.getElementById('financeDayIncomeLbl').textContent = dayWord + '收入';
-      document.getElementById('financeDayExpenseLbl').textContent = dayWord + '支出';
-      document.getElementById('financeDaySurplusLbl').textContent = dayWord + '盈餘';
-
-      let income = 0;
-      let expense = 0;
-      const expenseByCat = {};
-      dayRecords.forEach(r => {
-        if (r.type === 'income') income += r.amount;
-        else {
-          expense += r.amount;
-          expenseByCat[r.category] = (expenseByCat[r.category] || 0) + r.amount;
-        }
-      });
-
-      document.getElementById('financeTodayIncome').textContent = formatMoney(income);
-      document.getElementById('financeTodayExpense').textContent = formatMoney(expense);
-      const surplus = income - expense;
-      const surplusEl = document.getElementById('financeTodaySurplus');
-      surplusEl.textContent = (surplus >= 0 ? '' : '-') + formatMoney(Math.abs(surplus));
-      surplusEl.className = 'text-lg font-bold ' + (surplus >= 0 ? 'text-ios-blue' : 'text-ios-red');
-
-      const emptyEl = document.getElementById('financeTodayEmpty');
-      const catEl = document.getElementById('financeTodayCategories');
-      const countEl = document.getElementById('financeTodayCount');
-
-      if (dayRecords.length === 0) {
-        emptyEl.classList.remove('hidden');
-        catEl.classList.add('hidden');
-        countEl.classList.add('hidden');
-        catEl.innerHTML = '';
-        return;
-      }
-
-      emptyEl.classList.add('hidden');
-      const cats = Object.entries(expenseByCat).sort((a, b) => b[1] - a[1]);
-      if (cats.length > 0) {
-        catEl.classList.remove('hidden');
-        const maxAmt = cats[0][1];
-        catEl.innerHTML = `
-          <p class="text-xs text-ios-gray font-medium mb-1">${dayWord}支出分類</p>
-          ${cats.map(([cat, amt]) => `
-            <div>
-              <div class="flex justify-between text-xs mb-1">
-                <span class="font-medium">${cat}</span>
-                <span class="text-ios-gray">${formatMoney(amt)}</span>
-              </div>
-              <div class="h-2 bg-ios-bg rounded-full overflow-hidden">
-                <div class="macro-bar h-full bg-ios-red/70 rounded-full" style="width:${Math.round(amt / maxAmt * 100)}%"></div>
-              </div>
-            </div>
-          `).join('')}
-        `;
-      } else {
-        catEl.classList.add('hidden');
-        catEl.innerHTML = '';
-      }
-
-      const incomeCount = dayRecords.filter(r => r.type === 'income').length;
-      const expenseCount = dayRecords.filter(r => r.type === 'expense').length;
-      const parts = [];
-      if (incomeCount) parts.push(`${incomeCount} 筆收入`);
-      if (expenseCount) parts.push(`${expenseCount} 筆支出`);
-      countEl.textContent = dayWord + '共 ' + parts.join(' · ');
-      countEl.classList.remove('hidden');
-    }
-
     function renderFinanceRecordList() {
       const records = getFinanceRecordsForDate(financeSelectedDate);
       const isToday = financeSelectedDate === todayStr();
@@ -2732,17 +2429,15 @@
       }
       empty.classList.add('hidden');
       list.innerHTML = records.map(r => `
-        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
+        <div class="bg-ios-bg rounded-2xl p-4 flex items-center gap-3">
           <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${r.type === 'income' ? 'bg-green-100 text-ios-green' : 'bg-red-100 text-ios-red'}">
             ${r.category}
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between gap-2">
               <span class="font-semibold text-sm truncate">${r.memo || r.category}</span>
-              ${r.carrierUsed ? '<span class="text-[10px] bg-ios-blue/10 text-ios-blue px-1.5 py-0.5 rounded-md font-medium shrink-0">載具</span>' : ''}
               <span class="font-bold text-sm shrink-0 ${r.type === 'income' ? 'text-ios-green' : 'text-ios-red'}">${r.type === 'income' ? '+' : '-'}${formatMoney(r.amount)}</span>
             </div>
-            <p class="text-xs text-ios-gray mt-0.5">${r.invoiceNumber ? r.invoiceNumber : ''}</p>
           </div>
           <button data-delete-finance="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -2755,10 +2450,8 @@
       document.getElementById('currentMonthLabel').textContent = monthLabel(currentYear, currentMonth);
       financeCalYear = currentYear;
       financeCalMonth = currentMonth;
-      renderDailySummary();
       renderFinanceCalendar();
       renderSubscriptions();
-      renderCarrier();
 
       const records = getMonthRecords();
       let income = 0, expense = 0;
@@ -3569,22 +3262,6 @@
         renderFinance();
       });
 
-      document.getElementById('btnFinDayPrev').addEventListener('click', () => {
-        setFinanceSelectedDate(addDaysStr(financeSelectedDate, -1));
-        renderFinance();
-      });
-      document.getElementById('btnFinDayNext').addEventListener('click', () => {
-        setFinanceSelectedDate(addDaysStr(financeSelectedDate, 1));
-        renderFinance();
-      });
-      document.getElementById('btnFinCalPrev').addEventListener('click', () => {
-        shiftFinanceMonth(-1);
-        renderFinance();
-      });
-      document.getElementById('btnFinCalNext').addEventListener('click', () => {
-        shiftFinanceMonth(1);
-        renderFinance();
-      });
       document.getElementById('financeCalendarGrid').addEventListener('click', (e) => {
         const btn = e.target.closest('[data-fin-day]');
         if (!btn) return;
@@ -3594,16 +3271,25 @@
 
       document.getElementById('btnAddIncome').addEventListener('click', () => openFinanceModal('income'));
       document.getElementById('btnAddExpense').addEventListener('click', () => openFinanceModal('expense'));
-      document.getElementById('btnExportFinanceMonth').addEventListener('click', () => exportFinanceRecords('month'));
-      document.getElementById('btnExportFinanceAll').addEventListener('click', () => exportFinanceRecords('all'));
+      document.getElementById('btnOpenFinanceSubs').addEventListener('click', () => {
+        renderSubscriptions();
+        openModal('modalFinanceSubscriptions');
+      });
+      document.getElementById('btnOpenFinanceExport').addEventListener('click', () => openModal('modalFinanceExport'));
+      document.getElementById('btnExportFinanceMonth').addEventListener('click', () => {
+        exportFinanceRecords('month');
+        closeModal('modalFinanceExport');
+      });
+      document.getElementById('btnExportFinanceAll').addEventListener('click', () => {
+        exportFinanceRecords('all');
+        closeModal('modalFinanceExport');
+      });
 
       document.getElementById('btnSaveFinance').addEventListener('click', async () => {
         const amount = parseFloat(document.getElementById('finAmount').value);
         const category = document.getElementById('finCategory').value;
         const date = document.getElementById('finDate').value;
         const memo = document.getElementById('finMemo').value.trim();
-        const carrierUsed = document.getElementById('finCarrierUsed').checked;
-        const invoiceNumber = document.getElementById('finInvoiceNumber').value.trim();
         if (!amount || amount <= 0) { showToast('請輸入有效金額', true); return; }
         if (!date) { showToast('請選擇日期', true); return; }
         closeModal('modalFinance');
@@ -3615,9 +3301,7 @@
             amount,
             category,
             memo,
-            date,
-            carrierUsed: financeEntryType === 'expense' ? carrierUsed : false,
-            invoiceNumber: invoiceNumber || null
+            date
           });
         });
         showToast('記帳已儲存');
@@ -3632,67 +3316,6 @@
           db.finance.records = db.finance.records.filter(r => r.id !== id);
         });
         showToast('已刪除');
-      });
-
-      // Carrier
-      document.getElementById('btnSetupCarrier').addEventListener('click', () => openCarrierModal());
-      document.getElementById('btnEditCarrier').addEventListener('click', () => openCarrierModal());
-      document.getElementById('btnSaveCarrier').addEventListener('click', async () => {
-        const code = document.getElementById('carrierInput').value.trim().toUpperCase();
-        if (!validateCarrierCode(code)) {
-          showToast('載具格式錯誤，需為 / 開頭加 7 碼', true);
-          return;
-        }
-        const ok = await mutateAndSync(() => {
-          if (!db.finance.carrier) db.finance.carrier = {};
-          db.finance.carrier.mobileBarcode = code;
-        });
-        closeModal('modalCarrier');
-        showToast(ok ? '載具已儲存並同步' : '載具已存本機，雲端同步失敗請稍後重試', !ok);
-      });
-      document.getElementById('btnCopyCarrier').addEventListener('click', async () => {
-        const code = db.finance.carrier?.mobileBarcode;
-        if (!code) return;
-        try {
-          await navigator.clipboard.writeText(code);
-          showToast('已複製載具條碼');
-        } catch {
-          showToast('複製失敗', true);
-        }
-      });
-      document.getElementById('btnScanInvoice').addEventListener('click', () => {
-        if (!db.finance.carrier?.mobileBarcode) {
-          showToast('請先設定載具條碼', true);
-          return;
-        }
-        openQrScanner();
-      });
-
-      // QR file fallback
-      document.getElementById('qrFileInput').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        e.target.value = '';
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            const raw = decodeQrFromImageData(ctx.getImageData(0, 0, canvas.width, canvas.height));
-            const parsed = raw ? parseTaiwanInvoiceQR(raw) : null;
-            handleInvoiceScanResult(parsed);
-          };
-          img.src = ev.target.result;
-        };
-        reader.readAsDataURL(file);
-      });
-
-      document.getElementById('modalScanner').addEventListener('click', (e) => {
-        if (e.target.dataset.close === 'modalScanner') stopQrScanner();
       });
 
       // Subscriptions
@@ -3737,8 +3360,7 @@
           }
         }
         await mutateAndSync(() => {
-          if (!db.finance.carrier) db.finance.carrier = {};
-          db.finance.carrier.notifyEnabled = enabled;
+          db.finance.subNotifyEnabled = enabled;
         });
       });
 
@@ -4032,17 +3654,7 @@
       document.getElementById('finCategory').value = '食';
       document.getElementById('finDate').value = financeSelectedDate || todayStr();
       document.getElementById('finMemo').value = '';
-      document.getElementById('finInvoiceNumber').value = '';
-      document.getElementById('finCarrierUsed').checked = false;
-      const carrierWrap = document.getElementById('finCarrierWrap');
-      const hasCarrier = !!db.finance.carrier?.mobileBarcode;
-      carrierWrap.classList.toggle('hidden', type !== 'expense' || !hasCarrier);
       openModal('modalFinance');
-    }
-
-    function openCarrierModal() {
-      document.getElementById('carrierInput').value = db.finance.carrier?.mobileBarcode || '';
-      openModal('modalCarrier');
     }
 
     function openSubscriptionModal(sub) {

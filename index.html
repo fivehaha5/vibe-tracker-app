@@ -929,7 +929,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.4.4';
+    const APP_VERSION = '1.4.5';
     const DEFAULT_APP_ICON = 'green-moon';
     const ICON_THEMES = {
       'blue-v': '#007AFF',
@@ -3775,7 +3775,7 @@
         : (isIncome ? '新增收入' : '新增支出');
       document.getElementById('finAmount').value = record?.amount ?? '';
       document.getElementById('finCategory').value = record?.category ?? '食';
-      document.getElementById('finDate').value = record?.date ?? financeSelectedDate || todayStr();
+      document.getElementById('finDate').value = record?.date ?? (financeSelectedDate || todayStr());
       document.getElementById('finMemo').value = record?.memo ?? '';
       openModal('modalFinance');
     }

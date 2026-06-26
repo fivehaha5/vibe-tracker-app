@@ -858,7 +858,7 @@
     <div class="absolute inset-0 bg-black/40" data-close="modalSleep"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom">
       <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
-      <h2 class="text-lg font-bold mb-1">記錄睡眠</h2>
+      <h2 id="sleepModalTitle" class="text-lg font-bold mb-1">記錄睡眠</h2>
       <p class="text-xs text-ios-gray mb-4">以起床日期為準（例如今早起床 → 選今天）</p>
       <div class="space-y-3">
         <div>
@@ -891,6 +891,34 @@
     </div>
   </div>
 
+  <!-- Training Edit Modal -->
+  <div id="modalTrain" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalTrain"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom">
+      <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
+      <h2 id="trainModalTitle" class="text-lg font-bold mb-4">編輯訓練紀錄</h2>
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-ios-gray">部位</label>
+          <select id="trainEditPart" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30"></select>
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">組數</label>
+          <input id="trainEditSets" type="number" inputmode="numeric" min="1" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">日期</label>
+          <input id="trainEditDate" type="date" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">時間</label>
+          <input id="trainEditTime" type="time" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+      </div>
+      <button id="btnSaveTrain" class="w-full mt-5 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存</button>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-[60] hidden">
     <div id="toastInner" class="bg-gray-900/90 text-white text-sm px-5 py-2.5 rounded-full shadow-lg backdrop-blur"></div>
@@ -901,7 +929,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.4.3';
+    const APP_VERSION = '1.4.4';
     const DEFAULT_APP_ICON = 'green-moon';
     const ICON_THEMES = {
       'blue-v': '#007AFF',
@@ -1017,6 +1045,10 @@
     let pendingDietImage = null;
     let isSyncing = false;
     let editingSubscriptionId = null;
+    let editingFinanceId = null;
+    let editingDietId = null;
+    let editingSleepId = null;
+    let editingTrainId = null;
     let trainYear = new Date().getFullYear();
     let trainMonth = new Date().getMonth();
     let pendingTrainPart = null;
@@ -2464,7 +2496,10 @@
               <span class="font-bold text-sm shrink-0 ${r.type === 'income' ? 'text-ios-green' : 'text-ios-red'}">${r.type === 'income' ? '+' : '-'}${formatMoney(r.amount)}</span>
             </div>
           </div>
-          <button data-delete-finance="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform">
+          <button data-edit-finance="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-blue active:scale-95 transition-transform" aria-label="編輯">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </button>
+          <button data-delete-finance="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform" aria-label="刪除">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>
         </div>
@@ -2826,7 +2861,10 @@
                 脂 <span class="text-yellow-500 font-bold">${Math.round(r.fat || 0)}</span>g
               </p>
             </div>
-            <button data-delete-diet="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform">
+            <button data-edit-diet="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-blue active:scale-95 transition-transform" aria-label="編輯">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </button>
+            <button data-delete-diet="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform" aria-label="刪除">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             </button>
           </div>
@@ -3022,7 +3060,10 @@
             </div>
             <p class="text-xs text-ios-gray mt-0.5">${r.bedTime} → ${r.wakeTime}${diff < 0 ? ' · 欠 ' + formatSleepHours(Math.abs(diff)) : ''}</p>
           </div>
-          <button data-delete-sleep="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform">
+          <button data-edit-sleep="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-blue active:scale-95 transition-transform" aria-label="編輯">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </button>
+          <button data-delete-sleep="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform" aria-label="刪除">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>
         </div>`;
@@ -3166,7 +3207,10 @@
             </div>
             <p class="text-xs text-ios-gray mt-0.5">${r.time || ''} 紀錄</p>
           </div>
-          <button data-delete-train="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform">
+          <button data-edit-train="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-blue active:scale-95 transition-transform" aria-label="編輯">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </button>
+          <button data-delete-train="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform" aria-label="刪除">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>
         </div>`;
@@ -3283,25 +3327,38 @@
         const memo = document.getElementById('finMemo').value.trim();
         if (!amount || amount <= 0) { showToast('請輸入有效金額', true); return; }
         if (!date) { showToast('請選擇日期', true); return; }
+        const isEdit = !!editingFinanceId;
         closeModal('modalFinance');
         setFinanceSelectedDate(date);
         await mutateAndSync(() => {
-          db.finance.records.push({
-            id: uid(),
-            type: financeEntryType,
-            amount,
-            category,
-            memo,
-            date
-          });
+          if (editingFinanceId) {
+            const rec = db.finance.records.find(r => r.id === editingFinanceId);
+            if (rec) Object.assign(rec, { type: financeEntryType, amount, category, memo, date });
+            editingFinanceId = null;
+          } else {
+            db.finance.records.push({
+              id: uid(),
+              type: financeEntryType,
+              amount,
+              category,
+              memo,
+              date
+            });
+          }
         });
-        showToast('記帳已儲存');
+        showToast(isEdit ? '記帳已更新' : '記帳已儲存');
       });
 
       document.getElementById('financeList').addEventListener('click', async (e) => {
-        const btn = e.target.closest('[data-delete-finance]');
-        if (!btn) return;
-        const id = btn.dataset.deleteFinance;
+        const editBtn = e.target.closest('[data-edit-finance]');
+        const delBtn = e.target.closest('[data-delete-finance]');
+        if (editBtn) {
+          const rec = db.finance.records.find(r => r.id === editBtn.dataset.editFinance);
+          if (rec) openFinanceModal(rec.type, rec);
+          return;
+        }
+        if (!delBtn) return;
+        const id = delBtn.dataset.deleteFinance;
         if (!confirm('確定刪除此筆紀錄？')) return;
         await mutateAndSync(() => {
           db.finance.records = db.finance.records.filter(r => r.id !== id);
@@ -3394,9 +3451,7 @@
 
       document.getElementById('btnAddFoodManual').addEventListener('click', () => {
         pendingDietImage = null;
-        resetDietForm();
-        document.getElementById('dietModalTitle').textContent = '自訂飲食紀錄';
-        openModal('modalDiet');
+        openDietModal();
       });
 
       document.querySelectorAll('[data-diet-goal]').forEach(btn => {
@@ -3503,9 +3558,11 @@
         if (!file) return;
         try {
           pendingDietImage = await compressImage(file);
+          editingDietId = null;
           resetDietForm();
           document.getElementById('dietPreviewWrap').classList.remove('hidden');
           document.getElementById('dietPreview').src = pendingDietImage;
+          document.getElementById('dietModalTitle').textContent = '自訂飲食紀錄';
           openModal('modalDiet');
         } catch (err) {
           showToast(err.message || '照片處理失敗', true);
@@ -3524,25 +3581,49 @@
           showToast('請輸入名稱或熱量', true);
           return;
         }
+        const isEdit = !!editingDietId;
+        const saveDate = dietSelectedDate || todayStr();
         closeModal('modalDiet');
         const image = pendingDietImage;
         pendingDietImage = null;
         const ok = await mutateAndSync(() => {
-          db.diet.records.push({
-            id: uid(),
-            date: dietSelectedDate || todayStr(),
-            name: name || '飲食紀錄',
-            ...nutrients,
-            image: isPhotoStorageEnabled() ? (image || null) : null
-          });
+          if (editingDietId) {
+            const rec = db.diet.records.find(r => r.id === editingDietId);
+            if (rec) {
+              const nextImage = isPhotoStorageEnabled()
+                ? (image !== null ? image : rec.image)
+                : null;
+              Object.assign(rec, {
+                name: name || '飲食紀錄',
+                date: saveDate,
+                ...nutrients,
+                image: nextImage
+              });
+            }
+            editingDietId = null;
+          } else {
+            db.diet.records.push({
+              id: uid(),
+              date: saveDate,
+              name: name || '飲食紀錄',
+              ...nutrients,
+              image: isPhotoStorageEnabled() ? (image || null) : null
+            });
+          }
         });
-        showToast(ok ? '飲食紀錄已儲存' : '已存本機，雲端同步失敗', !ok);
+        showToast(ok ? (isEdit ? '飲食紀錄已更新' : '飲食紀錄已儲存') : '已存本機，雲端同步失敗', !ok);
       });
 
       document.getElementById('dietList').addEventListener('click', async (e) => {
-        const btn = e.target.closest('[data-delete-diet]');
-        if (!btn) return;
-        const id = btn.dataset.deleteDiet;
+        const editBtn = e.target.closest('[data-edit-diet]');
+        const delBtn = e.target.closest('[data-delete-diet]');
+        if (editBtn) {
+          const rec = db.diet.records.find(r => r.id === editBtn.dataset.editDiet);
+          if (rec) openDietModal(rec);
+          return;
+        }
+        if (!delBtn) return;
+        const id = delBtn.dataset.deleteDiet;
         if (!confirm('確定刪除此筆飲食紀錄？')) return;
         await mutateAndSync(() => {
           db.diet.records = db.diet.records.filter(r => r.id !== id);
@@ -3574,20 +3655,33 @@
         if (!date || !bedTime || !wakeTime) { showToast('請填寫完整時間', true); return; }
         const durationMinutes = calcSleepMinutes(date, bedTime, wakeTime);
         if (durationMinutes <= 0) { showToast('睡眠時數無效', true); return; }
+        const isEdit = !!editingSleepId;
         closeModal('modalSleep');
         const ok = await mutateAndSync(() => {
           if (!db.sleep) db.sleep = { targetHours: DEFAULT_SLEEP_TARGET, records: [] };
-          const existing = db.sleep.records.findIndex(r => r.date === date);
-          const entry = { id: uid(), date, bedTime, wakeTime, durationMinutes };
-          if (existing >= 0) db.sleep.records[existing] = { ...db.sleep.records[existing], ...entry, id: db.sleep.records[existing].id };
-          else db.sleep.records.push(entry);
+          if (editingSleepId) {
+            const rec = db.sleep.records.find(r => r.id === editingSleepId);
+            if (rec) Object.assign(rec, { date, bedTime, wakeTime, durationMinutes });
+            editingSleepId = null;
+          } else {
+            const existing = db.sleep.records.findIndex(r => r.date === date);
+            const entry = { id: uid(), date, bedTime, wakeTime, durationMinutes };
+            if (existing >= 0) db.sleep.records[existing] = { ...db.sleep.records[existing], ...entry, id: db.sleep.records[existing].id };
+            else db.sleep.records.push(entry);
+          }
         });
-        showToast(ok ? `已記錄 ${formatSleepHours(durationMinutes)}` : '已存本機，同步失敗', !ok);
+        showToast(ok ? (isEdit ? '睡眠紀錄已更新' : `已記錄 ${formatSleepHours(durationMinutes)}`) : '已存本機，同步失敗', !ok);
       });
       document.getElementById('sleepList').addEventListener('click', async (e) => {
-        const btn = e.target.closest('[data-delete-sleep]');
-        if (!btn) return;
-        const id = btn.dataset.deleteSleep;
+        const editBtn = e.target.closest('[data-edit-sleep]');
+        const delBtn = e.target.closest('[data-delete-sleep]');
+        if (editBtn) {
+          const rec = db.sleep.records.find(r => r.id === editBtn.dataset.editSleep);
+          if (rec) openSleepModal(rec);
+          return;
+        }
+        if (!delBtn) return;
+        const id = delBtn.dataset.deleteSleep;
         if (!confirm('確定刪除此筆睡眠紀錄？')) return;
         await mutateAndSync(() => {
           db.sleep.records = db.sleep.records.filter(r => r.id !== id);
@@ -3621,35 +3715,108 @@
         });
       });
       document.getElementById('trainList').addEventListener('click', async (e) => {
-        const btn = e.target.closest('[data-delete-train]');
-        if (!btn) return;
-        const id = btn.dataset.deleteTrain;
+        const editBtn = e.target.closest('[data-edit-train]');
+        const delBtn = e.target.closest('[data-delete-train]');
+        if (editBtn) {
+          const rec = db.training.records.find(r => r.id === editBtn.dataset.editTrain);
+          if (rec) openTrainModal(rec);
+          return;
+        }
+        if (!delBtn) return;
+        const id = delBtn.dataset.deleteTrain;
         if (!confirm('確定刪除此筆訓練紀錄？')) return;
         await mutateAndSync(() => {
           db.training.records = db.training.records.filter(r => r.id !== id);
         });
         showToast('已刪除');
       });
+
+      document.getElementById('btnSaveTrain').addEventListener('click', async () => {
+        const part = document.getElementById('trainEditPart').value;
+        const sets = parseInt(document.getElementById('trainEditSets').value, 10);
+        const date = document.getElementById('trainEditDate').value;
+        const time = document.getElementById('trainEditTime').value;
+        if (!part || !sets || sets < 1) { showToast('請填寫有效組數', true); return; }
+        if (!date || !time) { showToast('請填寫日期與時間', true); return; }
+        closeModal('modalTrain');
+        await mutateAndSync(() => {
+          const rec = db.training.records.find(r => r.id === editingTrainId);
+          if (rec) Object.assign(rec, { part, sets, date, time });
+          editingTrainId = null;
+        });
+        showToast('訓練紀錄已更新');
+      });
     }
 
-    function openSleepModal() {
-      const now = new Date();
-      document.getElementById('sleepDate').value = todayStr();
-      document.getElementById('sleepWake').value = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
-      const bed = new Date(now.getTime() - 8 * 3600000);
-      document.getElementById('sleepBed').value = pad2(bed.getHours()) + ':' + pad2(bed.getMinutes());
+    function openSleepModal(record) {
+      editingSleepId = record ? record.id : null;
+      document.getElementById('sleepModalTitle').textContent = record ? '編輯睡眠紀錄' : '記錄睡眠';
+      if (record) {
+        document.getElementById('sleepDate').value = record.date;
+        document.getElementById('sleepBed').value = record.bedTime;
+        document.getElementById('sleepWake').value = record.wakeTime;
+      } else {
+        const now = new Date();
+        document.getElementById('sleepDate').value = todayStr();
+        document.getElementById('sleepWake').value = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
+        const bed = new Date(now.getTime() - 8 * 3600000);
+        document.getElementById('sleepBed').value = pad2(bed.getHours()) + ':' + pad2(bed.getMinutes());
+      }
       updateSleepDurationPreview();
       openModal('modalSleep');
     }
 
-    function openFinanceModal(type) {
-      financeEntryType = type;
-      document.getElementById('financeModalTitle').textContent = type === 'income' ? '新增收入' : '新增支出';
-      document.getElementById('finAmount').value = '';
-      document.getElementById('finCategory').value = '食';
-      document.getElementById('finDate').value = financeSelectedDate || todayStr();
-      document.getElementById('finMemo').value = '';
+    function openFinanceModal(type, record) {
+      editingFinanceId = record ? record.id : null;
+      financeEntryType = record ? record.type : type;
+      const isIncome = financeEntryType === 'income';
+      document.getElementById('financeModalTitle').textContent = record
+        ? (isIncome ? '編輯收入' : '編輯支出')
+        : (isIncome ? '新增收入' : '新增支出');
+      document.getElementById('finAmount').value = record?.amount ?? '';
+      document.getElementById('finCategory').value = record?.category ?? '食';
+      document.getElementById('finDate').value = record?.date ?? financeSelectedDate || todayStr();
+      document.getElementById('finMemo').value = record?.memo ?? '';
       openModal('modalFinance');
+    }
+
+    function openDietModal(record) {
+      editingDietId = record ? record.id : null;
+      document.getElementById('dietModalTitle').textContent = record ? '編輯飲食紀錄' : '自訂飲食紀錄';
+      if (record) {
+        pendingDietImage = null;
+        document.getElementById('dietName').value = record.name || '';
+        document.getElementById('dietCalories').value = record.calories || '';
+        document.getElementById('dietCarbs').value = record.carbs || '';
+        document.getElementById('dietProtein').value = record.protein || '';
+        document.getElementById('dietFat').value = record.fat || '';
+        const hasMacros = (record.carbs || record.protein || record.fat);
+        document.getElementById('dietDetailFields').classList.toggle('hidden', !hasMacros);
+        document.getElementById('btnToggleDietDetail').textContent = hasMacros
+          ? '▾ 收合詳細營養素（選填）'
+          : '▸ 展開詳細營養素（選填）';
+        if (record.image) {
+          document.getElementById('dietPreviewWrap').classList.remove('hidden');
+          document.getElementById('dietPreview').src = record.image;
+        } else {
+          document.getElementById('dietPreviewWrap').classList.add('hidden');
+          document.getElementById('dietPreview').src = '';
+        }
+      } else {
+        resetDietForm();
+      }
+      openModal('modalDiet');
+    }
+
+    function openTrainModal(record) {
+      editingTrainId = record.id;
+      document.getElementById('trainEditPart').innerHTML = TRAINING_PARTS.map(p =>
+        `<option value="${p.id}" ${p.id === record.part ? 'selected' : ''}>${p.label}</option>`
+      ).join('');
+      document.getElementById('trainEditSets').value = record.sets || '';
+      document.getElementById('trainEditDate').value = record.date || todayStr();
+      document.getElementById('trainEditTime').value = record.time || '18:00';
+      openModal('modalTrain');
     }
 
     function openSubscriptionModal(sub) {

@@ -142,6 +142,11 @@
     html.dark .diet-cal-cell.has-data { background: rgba(10, 132, 255, 0.15); }
     .diet-cal-cell.is-today { box-shadow: inset 0 0 0 2px #007AFF; }
     html.dark .diet-cal-cell.is-today { box-shadow: inset 0 0 0 2px #0A84FF; }
+    .fin-cal-cell.has-expense { background: rgba(255, 59, 48, 0.08); }
+    html.dark .fin-cal-cell.has-expense { background: rgba(255, 69, 58, 0.15); }
+    .fin-cal-cell.is-selected { box-shadow: inset 0 0 0 2px #FF9500; }
+    .fin-cal-cell.is-today { box-shadow: inset 0 0 0 2px #007AFF; }
+    html.dark .fin-cal-cell.is-today { box-shadow: inset 0 0 0 2px #0A84FF; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
@@ -205,25 +210,53 @@
 
       <!-- Daily Summary -->
       <div class="bg-white rounded-3xl shadow-sm p-5">
-        <h2 class="text-base font-bold mb-1">每日小結</h2>
-        <p id="financeTodayDateLabel" class="text-xs text-ios-gray mb-4"></p>
+        <div class="flex items-center gap-2 mb-4">
+          <button type="button" id="btnFinDayPrev" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform shrink-0">
+            <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <div class="flex-1 text-center min-w-0">
+            <h2 class="text-base font-bold">每日小結</h2>
+            <p id="financeTodayDateLabel" class="text-xs text-ios-gray mt-0.5 truncate"></p>
+          </div>
+          <button type="button" id="btnFinDayNext" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform shrink-0">
+            <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
         <div class="grid grid-cols-3 gap-3 mb-4">
           <div class="bg-ios-bg rounded-2xl p-3 text-center">
-            <p class="text-xs text-ios-gray">今日收入</p>
+            <p id="financeDayIncomeLbl" class="text-xs text-ios-gray">當日收入</p>
             <p id="financeTodayIncome" class="text-lg font-bold text-ios-green">$0</p>
           </div>
           <div class="bg-ios-bg rounded-2xl p-3 text-center">
-            <p class="text-xs text-ios-gray">今日支出</p>
+            <p id="financeDayExpenseLbl" class="text-xs text-ios-gray">當日支出</p>
             <p id="financeTodayExpense" class="text-lg font-bold text-ios-red">$0</p>
           </div>
           <div class="bg-ios-bg rounded-2xl p-3 text-center">
-            <p class="text-xs text-ios-gray">今日盈餘</p>
+            <p id="financeDaySurplusLbl" class="text-xs text-ios-gray">當日盈餘</p>
             <p id="financeTodaySurplus" class="text-lg font-bold text-ios-blue">$0</p>
           </div>
         </div>
         <div id="financeTodayCategories" class="space-y-2 hidden"></div>
-        <p id="financeTodayEmpty" class="text-center text-ios-gray text-sm py-2">今日尚無紀錄</p>
+        <p id="financeTodayEmpty" class="text-center text-ios-gray text-sm py-2">此日尚無紀錄</p>
         <p id="financeTodayCount" class="text-xs text-ios-gray text-center mt-2 hidden"></p>
+      </div>
+
+      <!-- Finance Calendar -->
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <div class="flex items-center justify-between mb-4">
+          <button type="button" id="btnFinCalPrev" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
+            <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <span id="financeCalMonthLabel" class="text-base font-semibold"></span>
+          <button type="button" id="btnFinCalNext" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
+            <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+        <div class="grid grid-cols-7 gap-1 mb-1 text-center text-[10px] text-ios-gray font-medium">
+          <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+        </div>
+        <div id="financeCalendarGrid" class="grid grid-cols-7 gap-1"></div>
+        <p class="text-[10px] text-ios-gray mt-3 text-center">點日期切換小結；紅底為有支出</p>
       </div>
 
       <!-- Subscription Reminders -->
@@ -301,8 +334,9 @@
       </div>
 
       <!-- Records List -->
+      <p id="financeListDateLabel" class="text-xs text-ios-gray px-1">當日明細</p>
       <div id="financeList" class="space-y-2"></div>
-      <p id="financeEmpty" class="text-center text-ios-gray text-sm py-8 hidden">本月尚無紀錄</p>
+      <p id="financeEmpty" class="text-center text-ios-gray text-sm py-8 hidden">此日尚無紀錄</p>
     </section>
 
     <!-- ===== DIET TAB ===== -->
@@ -951,7 +985,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.3.9';
+    const APP_VERSION = '1.4.0';
     const DEFAULT_APP_ICON = 'green-moon';
     const ICON_THEMES = {
       'blue-v': '#007AFF',
@@ -1062,6 +1096,9 @@
     let currentTab = 'finance';
     let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth();
+    let financeSelectedDate = todayStr();
+    let financeCalYear = new Date().getFullYear();
+    let financeCalMonth = new Date().getMonth();
     let financeEntryType = 'income';
     let pendingDietImage = null;
     let isSyncing = false;
@@ -2527,21 +2564,97 @@
       }).sort((a, b) => new Date(b.date) - new Date(a.date));
     }
 
+    function getFinanceRecordsForDate(dateStr) {
+      return db.finance.records
+        .filter(r => r.date === dateStr)
+        .sort((a, b) => (b.id || '').localeCompare(a.id || ''));
+    }
+
     function getTodayFinanceRecords() {
+      return getFinanceRecordsForDate(todayStr());
+    }
+
+    function getFinanceDayExpense(dateStr) {
+      return (db.finance.records || [])
+        .filter(r => r.date === dateStr && r.type === 'expense')
+        .reduce((s, r) => s + (r.amount || 0), 0);
+    }
+
+    function financeDayHasRecords(dateStr) {
+      return (db.finance.records || []).some(r => r.date === dateStr);
+    }
+
+    function setFinanceSelectedDate(dateStr) {
+      financeSelectedDate = dateStr;
+      const d = parseDateAtNoon(dateStr);
+      currentYear = d.getFullYear();
+      currentMonth = d.getMonth();
+      financeCalYear = currentYear;
+      financeCalMonth = currentMonth;
+    }
+
+    function shiftFinanceMonth(delta) {
+      currentMonth += delta;
+      if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+      if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+      financeCalYear = currentYear;
+      financeCalMonth = currentMonth;
       const today = todayStr();
-      return db.finance.records.filter(r => r.date === today);
+      const inMonth = parseDateAtNoon(today).getFullYear() === currentYear
+        && parseDateAtNoon(today).getMonth() === currentMonth;
+      const sel = parseDateAtNoon(financeSelectedDate);
+      if (sel.getFullYear() !== currentYear || sel.getMonth() !== currentMonth) {
+        setFinanceSelectedDate(inMonth ? today : `${currentYear}-${pad2(currentMonth + 1)}-01`);
+      }
+    }
+
+    function renderFinanceCalendar() {
+      document.getElementById('financeCalMonthLabel').textContent = monthLabel(financeCalYear, financeCalMonth);
+      const grid = document.getElementById('financeCalendarGrid');
+      if (!grid) return;
+
+      const first = new Date(financeCalYear, financeCalMonth, 1);
+      const lastDate = new Date(financeCalYear, financeCalMonth + 1, 0).getDate();
+      const startPad = (first.getDay() + 6) % 7;
+      const today = todayStr();
+      let html = '';
+
+      for (let i = 0; i < startPad; i++) {
+        html += '<div class="fin-cal-cell diet-cal-cell rounded-lg"></div>';
+      }
+      for (let day = 1; day <= lastDate; day++) {
+        const dateStr = `${financeCalYear}-${pad2(financeCalMonth + 1)}-${pad2(day)}`;
+        const expense = getFinanceDayExpense(dateStr);
+        const hasData = financeDayHasRecords(dateStr);
+        const isToday = dateStr === today;
+        const isSelected = dateStr === financeSelectedDate;
+        html += `
+          <button type="button" data-fin-day="${dateStr}" class="fin-cal-cell diet-cal-cell rounded-lg p-1 text-center active:scale-95 transition-transform ${hasData ? 'has-expense' : 'bg-ios-bg/40'} ${isToday ? 'is-today' : ''} ${isSelected ? 'is-selected' : ''}">
+            <span class="block text-[11px] font-semibold">${day}</span>
+            ${expense > 0 ? `<span class="block text-[9px] text-ios-red font-bold leading-tight">${formatMoney(expense).replace('$', '')}</span>` : '<span class="block text-[9px] text-transparent">·</span>'}
+          </button>
+        `;
+      }
+      grid.innerHTML = html;
     }
 
     function renderDailySummary() {
-      const todayRecords = getTodayFinanceRecords();
-      document.getElementById('financeTodayDateLabel').textContent = new Date().toLocaleDateString('zh-TW', {
+      const dateStr = financeSelectedDate;
+      const dayRecords = getFinanceRecordsForDate(dateStr);
+      const isToday = dateStr === todayStr();
+      const dayWord = isToday ? '今日' : '當日';
+
+      document.getElementById('financeTodayDateLabel').textContent = parseDateAtNoon(dateStr).toLocaleDateString('zh-TW', {
         year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
       });
+      document.getElementById('financeDayIncomeLbl').textContent = dayWord + '收入';
+      document.getElementById('financeDayExpenseLbl').textContent = dayWord + '支出';
+      document.getElementById('financeDaySurplusLbl').textContent = dayWord + '盈餘';
 
       let income = 0;
       let expense = 0;
       const expenseByCat = {};
-      todayRecords.forEach(r => {
+      dayRecords.forEach(r => {
         if (r.type === 'income') income += r.amount;
         else {
           expense += r.amount;
@@ -2560,7 +2673,7 @@
       const catEl = document.getElementById('financeTodayCategories');
       const countEl = document.getElementById('financeTodayCount');
 
-      if (todayRecords.length === 0) {
+      if (dayRecords.length === 0) {
         emptyEl.classList.remove('hidden');
         catEl.classList.add('hidden');
         countEl.classList.add('hidden');
@@ -2574,7 +2687,7 @@
         catEl.classList.remove('hidden');
         const maxAmt = cats[0][1];
         catEl.innerHTML = `
-          <p class="text-xs text-ios-gray font-medium mb-1">今日支出分類</p>
+          <p class="text-xs text-ios-gray font-medium mb-1">${dayWord}支出分類</p>
           ${cats.map(([cat, amt]) => `
             <div>
               <div class="flex justify-between text-xs mb-1">
@@ -2592,33 +2705,23 @@
         catEl.innerHTML = '';
       }
 
-      const incomeCount = todayRecords.filter(r => r.type === 'income').length;
-      const expenseCount = todayRecords.filter(r => r.type === 'expense').length;
+      const incomeCount = dayRecords.filter(r => r.type === 'income').length;
+      const expenseCount = dayRecords.filter(r => r.type === 'expense').length;
       const parts = [];
       if (incomeCount) parts.push(`${incomeCount} 筆收入`);
       if (expenseCount) parts.push(`${expenseCount} 筆支出`);
-      countEl.textContent = '今日共 ' + parts.join(' · ');
+      countEl.textContent = dayWord + '共 ' + parts.join(' · ');
       countEl.classList.remove('hidden');
     }
 
-    function renderFinance() {
-      document.getElementById('currentMonthLabel').textContent = monthLabel(currentYear, currentMonth);
-      renderDailySummary();
-      renderSubscriptions();
-      renderCarrier();
-
-      const records = getMonthRecords();
-      let income = 0, expense = 0;
-      records.forEach(r => {
-        if (r.type === 'income') income += r.amount;
-        else expense += r.amount;
+    function renderFinanceRecordList() {
+      const records = getFinanceRecordsForDate(financeSelectedDate);
+      const isToday = financeSelectedDate === todayStr();
+      const label = parseDateAtNoon(financeSelectedDate).toLocaleDateString('zh-TW', {
+        month: 'long', day: 'numeric', weekday: 'short'
       });
-      document.getElementById('totalIncome').textContent = formatMoney(income);
-      document.getElementById('totalExpense').textContent = formatMoney(expense);
-      const surplus = income - expense;
-      const surplusEl = document.getElementById('totalSurplus');
-      surplusEl.textContent = (surplus >= 0 ? '' : '-') + formatMoney(Math.abs(surplus));
-      surplusEl.className = 'text-lg font-bold ' + (surplus >= 0 ? 'text-ios-blue' : 'text-ios-red');
+      document.getElementById('financeListDateLabel').textContent =
+        (isToday ? '今日' : '當日') + '明細 · ' + label;
 
       const list = document.getElementById('financeList');
       const empty = document.getElementById('financeEmpty');
@@ -2639,13 +2742,38 @@
               ${r.carrierUsed ? '<span class="text-[10px] bg-ios-blue/10 text-ios-blue px-1.5 py-0.5 rounded-md font-medium shrink-0">載具</span>' : ''}
               <span class="font-bold text-sm shrink-0 ${r.type === 'income' ? 'text-ios-green' : 'text-ios-red'}">${r.type === 'income' ? '+' : '-'}${formatMoney(r.amount)}</span>
             </div>
-            <p class="text-xs text-ios-gray mt-0.5">${r.date}${r.invoiceNumber ? ' · ' + r.invoiceNumber : ''}</p>
+            <p class="text-xs text-ios-gray mt-0.5">${r.invoiceNumber ? r.invoiceNumber : ''}</p>
           </div>
           <button data-delete-finance="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>
         </div>
       `).join('');
+    }
+
+    function renderFinance() {
+      document.getElementById('currentMonthLabel').textContent = monthLabel(currentYear, currentMonth);
+      financeCalYear = currentYear;
+      financeCalMonth = currentMonth;
+      renderDailySummary();
+      renderFinanceCalendar();
+      renderSubscriptions();
+      renderCarrier();
+
+      const records = getMonthRecords();
+      let income = 0, expense = 0;
+      records.forEach(r => {
+        if (r.type === 'income') income += r.amount;
+        else expense += r.amount;
+      });
+      document.getElementById('totalIncome').textContent = formatMoney(income);
+      document.getElementById('totalExpense').textContent = formatMoney(expense);
+      const surplus = income - expense;
+      const surplusEl = document.getElementById('totalSurplus');
+      surplusEl.textContent = (surplus >= 0 ? '' : '-') + formatMoney(Math.abs(surplus));
+      surplusEl.className = 'text-lg font-bold ' + (surplus >= 0 ? 'text-ios-blue' : 'text-ios-red');
+
+      renderFinanceRecordList();
     }
 
     // ─── Render: Diet ───
@@ -3432,14 +3560,35 @@
       });
 
       document.getElementById('btnPrevMonth').addEventListener('click', () => {
-        currentMonth--;
-        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        shiftFinanceMonth(-1);
         renderFinance();
       });
 
       document.getElementById('btnNextMonth').addEventListener('click', () => {
-        currentMonth++;
-        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        shiftFinanceMonth(1);
+        renderFinance();
+      });
+
+      document.getElementById('btnFinDayPrev').addEventListener('click', () => {
+        setFinanceSelectedDate(addDaysStr(financeSelectedDate, -1));
+        renderFinance();
+      });
+      document.getElementById('btnFinDayNext').addEventListener('click', () => {
+        setFinanceSelectedDate(addDaysStr(financeSelectedDate, 1));
+        renderFinance();
+      });
+      document.getElementById('btnFinCalPrev').addEventListener('click', () => {
+        shiftFinanceMonth(-1);
+        renderFinance();
+      });
+      document.getElementById('btnFinCalNext').addEventListener('click', () => {
+        shiftFinanceMonth(1);
+        renderFinance();
+      });
+      document.getElementById('financeCalendarGrid').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-fin-day]');
+        if (!btn) return;
+        setFinanceSelectedDate(btn.dataset.finDay);
         renderFinance();
       });
 
@@ -3458,6 +3607,7 @@
         if (!amount || amount <= 0) { showToast('請輸入有效金額', true); return; }
         if (!date) { showToast('請選擇日期', true); return; }
         closeModal('modalFinance');
+        setFinanceSelectedDate(date);
         await mutateAndSync(() => {
           db.finance.records.push({
             id: uid(),
@@ -3880,7 +4030,7 @@
       document.getElementById('financeModalTitle').textContent = type === 'income' ? '新增收入' : '新增支出';
       document.getElementById('finAmount').value = '';
       document.getElementById('finCategory').value = '食';
-      document.getElementById('finDate').value = todayStr();
+      document.getElementById('finDate').value = financeSelectedDate || todayStr();
       document.getElementById('finMemo').value = '';
       document.getElementById('finInvoiceNumber').value = '';
       document.getElementById('finCarrierUsed').checked = false;

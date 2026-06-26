@@ -217,7 +217,7 @@
       <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
         <div class="p-5 pb-3">
           <div class="grid grid-cols-7 gap-1 mb-1 text-center text-[10px] text-ios-gray font-medium">
-            <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+            <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
           </div>
           <div id="financeCalendarGrid" class="grid grid-cols-7 gap-1"></div>
           <p class="text-[10px] text-ios-gray mt-2 text-center">點日期查看明細；紅底為有支出</p>
@@ -467,7 +467,7 @@
             </button>
           </div>
           <div class="grid grid-cols-7 gap-1 mb-1 text-center text-[10px] text-ios-gray font-medium">
-            <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+            <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
           </div>
           <div id="dietCalendarGrid" class="grid grid-cols-7 gap-1"></div>
           <p class="text-[10px] text-ios-gray mt-3 text-center">點日期查看當日攝取；藍底為有紀錄</p>
@@ -899,7 +899,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.4.1';
+    const APP_VERSION = '1.4.2';
     const DEFAULT_APP_ICON = 'green-moon';
     const ICON_THEMES = {
       'blue-v': '#007AFF',
@@ -917,7 +917,6 @@
     const LOCAL_DB_KEY = 'vibe_tracker_db_cache';
     const DIET_PROFILE_KEY = 'vibe_diet_profile_backup';
     const DEFAULT_SLEEP_TARGET = 8;
-    const SLEEP_DEBT_DAYS = 7;
     const DEFAULT_PHOTO_RETENTION_DAYS = 3;
     const DIET_WEEKLY_RETENTION_DAYS = 90;
     const FOOD_CATEGORIES = ['全部', '健身', '超商', '外食', '飲料', '原型'];
@@ -1169,10 +1168,17 @@
 
     function getWeekStart(dateStr) {
       const d = parseDateAtNoon(dateStr);
-      const day = d.getDay();
-      const diff = day === 0 ? -6 : 1 - day;
-      d.setDate(d.getDate() + diff);
+      d.setDate(d.getDate() - d.getDay());
       return formatDateYMD(d);
+    }
+
+    function getWeekDates(dateStr) {
+      const start = getWeekStart(dateStr || todayStr());
+      return Array.from({ length: 7 }, (_, i) => addDaysStr(start, i));
+    }
+
+    function monthCalendarStartPad(year, month) {
+      return new Date(year, month, 1).getDay();
     }
 
     function getWeekEnd(weekStart) {
@@ -2388,7 +2394,7 @@
 
       const first = new Date(financeCalYear, financeCalMonth, 1);
       const lastDate = new Date(financeCalYear, financeCalMonth + 1, 0).getDate();
-      const startPad = (first.getDay() + 6) % 7;
+      const startPad = monthCalendarStartPad(financeCalYear, financeCalMonth);
       const today = todayStr();
       let html = '';
 
@@ -2672,7 +2678,7 @@
 
       const first = new Date(dietCalYear, dietCalMonth, 1);
       const lastDate = new Date(dietCalYear, dietCalMonth + 1, 0).getDate();
-      const startPad = (first.getDay() + 6) % 7;
+      const startPad = monthCalendarStartPad(dietCalYear, dietCalMonth);
       const today = todayStr();
       let html = '';
 
@@ -2897,20 +2903,9 @@
       return (db.sleep?.records || []).find(r => r.date === dateStr) || null;
     }
 
-    function getLast7Dates() {
-      const dates = [];
-      const d = new Date();
-      for (let i = 0; i < SLEEP_DEBT_DAYS; i++) {
-        const x = new Date(d);
-        x.setDate(x.getDate() - i);
-        dates.push(`${x.getFullYear()}-${pad2(x.getMonth() + 1)}-${pad2(x.getDate())}`);
-      }
-      return dates;
-    }
-
     function computeSleepStats() {
       const targetMin = getSleepTargetHours() * 60;
-      const dates = getLast7Dates();
+      const dates = getWeekDates(todayStr());
       let debtMin = 0;
       let totalMin = 0;
       let count = 0;
@@ -2926,7 +2921,7 @@
         return { date, minutes, deficit, rec };
       });
       const avgMin = count ? Math.round(totalMin / count) : null;
-      const lastNight = getSleepRecordByDate(dates[0]);
+      const lastNight = getSleepRecordByDate(todayStr());
       return { debtMin, avgMin, targetMin, daily, lastNight, dates };
     }
 
@@ -2989,7 +2984,7 @@
 
       const weekChart = document.getElementById('sleepWeekChart');
       const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
-      weekChart.innerHTML = [...stats.daily].reverse().map(d => {
+      weekChart.innerHTML = stats.daily.map(d => {
         const dt = new Date(d.date + 'T12:00:00');
         const label = `${dt.getMonth() + 1}/${dt.getDate()} (${dayNames[dt.getDay()]})`;
         const pct = d.minutes !== null ? Math.min(100, d.minutes / stats.targetMin * 100) : 0;

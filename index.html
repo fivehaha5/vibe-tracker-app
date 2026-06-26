@@ -140,6 +140,7 @@
     html.dark .diet-cal-cell.has-data { background: rgba(10, 132, 255, 0.15); }
     .diet-cal-cell.is-today { box-shadow: inset 0 0 0 2px #007AFF; }
     html.dark .diet-cal-cell.is-today { box-shadow: inset 0 0 0 2px #0A84FF; }
+    .diet-cal-cell.is-selected { box-shadow: inset 0 0 0 2px #FF9500; }
     .fin-cal-cell.has-expense { background: rgba(255, 59, 48, 0.08); }
     html.dark .fin-cal-cell.has-expense { background: rgba(255, 69, 58, 0.15); }
     .fin-cal-cell.is-selected { box-shadow: inset 0 0 0 2px #FF9500; }
@@ -257,148 +258,85 @@
     <!-- ===== DIET TAB ===== -->
     <section id="tabDiet" class="tab-panel hidden space-y-4">
 
-      <!-- BMR / TDEE Calculator -->
+      <!-- 當日攝取摘要 -->
       <div class="bg-white rounded-3xl shadow-sm p-5">
-        <h2 class="text-base font-bold mb-4">BMR / TDEE 計算機</h2>
-        <div class="grid grid-cols-2 gap-3 mb-3">
-          <div>
-            <label class="text-xs text-ios-gray">性別</label>
-            <select id="calcGender" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
-              <option value="male">男性</option>
-              <option value="female">女性</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-xs text-ios-gray">年齡</label>
-            <input id="calcAge" type="number" inputmode="numeric" placeholder="25" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
-          </div>
-          <div>
-            <label class="text-xs text-ios-gray">身高 (cm)</label>
-            <input id="calcHeight" type="number" inputmode="decimal" placeholder="170" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
-          </div>
-          <div>
-            <label class="text-xs text-ios-gray">體重 (kg)</label>
-            <input id="calcWeight" type="number" inputmode="decimal" placeholder="70" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
-          </div>
-        </div>
-        <div class="mb-4">
-          <label class="text-xs text-ios-gray">活動量</label>
-          <select id="calcActivity" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
-            <option value="1.2">久坐（幾乎不運動）</option>
-            <option value="1.375">輕度（每週 1-3 天）</option>
-            <option value="1.55">中度（每週 3-5 天）</option>
-            <option value="1.725">高度（每週 6-7 天）</option>
-            <option value="1.9">極高（體力勞動/運動員）</option>
-          </select>
-        </div>
-        <button id="btnCalculate" class="w-full bg-ios-blue text-white font-semibold py-3 rounded-2xl active:scale-95 transition-transform">計算並儲存</button>
-        <div id="calcResult" class="mt-4 grid grid-cols-2 gap-3 hidden">
-          <div class="bg-ios-bg rounded-2xl p-3 text-center">
-            <p class="text-xs text-ios-gray">BMR</p>
-            <p id="resultBMR" class="text-lg font-bold text-ios-orange">—</p>
-            <p class="text-xs text-ios-gray">kcal/天</p>
-          </div>
-          <div class="bg-ios-bg rounded-2xl p-3 text-center">
-            <p class="text-xs text-ios-gray">TDEE</p>
-            <p id="resultTDEE" class="text-lg font-bold text-ios-blue">—</p>
-            <p class="text-xs text-ios-gray">kcal/天</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Target Settings -->
-      <div class="bg-white rounded-3xl shadow-sm p-5">
-        <h2 class="text-base font-bold mb-1">【目標設定】</h2>
-        <p class="text-xs text-ios-gray mb-3">依 TDEE 與運動期營養比例（國健署為一般維持標準）</p>
-
         <div class="flex gap-2 bg-ios-bg rounded-2xl p-1.5 mb-4">
           <button type="button" data-diet-goal="bulk" class="diet-goal-btn flex-1 py-2.5 rounded-xl text-sm font-semibold text-ios-gray active:scale-95 transition-transform">💪 增肌</button>
           <button type="button" data-diet-goal="cut" class="diet-goal-btn flex-1 py-2.5 rounded-xl text-sm font-semibold active active:scale-95 transition-transform">🔥 減脂</button>
         </div>
-
-        <div id="activeGoalPanel">
-          <div class="flex items-center justify-between mb-2">
-            <span id="goalModeLabel" class="text-sm font-semibold text-ios-green">增肌</span>
-            <span id="goalCalories" class="text-sm font-bold text-ios-red">— kcal</span>
-          </div>
-          <p id="goalRatioHint" class="text-[10px] text-ios-gray mb-3">醣類 — · 蛋白 — · 脂質 —</p>
-          <div class="space-y-2">
-            <div>
-              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-blue-500">碳水</span><span id="goalCarbsG" class="text-ios-gray">— g</span></div>
-              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="goalCarbsBar" class="macro-bar h-full bg-blue-500 rounded-full" style="width:0%"></div></div>
-            </div>
-            <div>
-              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-green-500">蛋白質</span><span id="goalProteinG" class="text-ios-gray">— g</span></div>
-              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="goalProteinBar" class="macro-bar h-full bg-green-500 rounded-full" style="width:0%"></div></div>
-            </div>
-            <div>
-              <div class="flex justify-between text-xs mb-1"><span class="font-medium text-yellow-500">脂肪</span><span id="goalFatG" class="text-ios-gray">— g</span></div>
-              <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="goalFatBar" class="macro-bar h-full bg-yellow-400 rounded-full" style="width:0%"></div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Diet view toggle -->
-      <div class="flex gap-2 bg-white rounded-2xl shadow-sm p-1.5">
-        <button type="button" data-diet-view="today" class="diet-view-btn flex-1 py-2.5 rounded-xl text-sm font-semibold active:scale-95 transition-transform active">今日紀錄</button>
-        <button type="button" data-diet-view="calendar" class="diet-view-btn flex-1 py-2.5 rounded-xl text-sm font-semibold text-ios-gray active:scale-95 transition-transform">日曆與小結</button>
-      </div>
-
-      <div id="dietTodayPanel">
-      <!-- Today Actual -->
-      <div class="bg-white rounded-3xl shadow-sm p-5">
-        <h2 class="text-base font-bold mb-1">【今日實際攝取】</h2>
-        <p id="todayDateLabel" class="text-xs text-ios-gray mb-4"></p>
-
-        <div class="grid grid-cols-2 gap-3 mb-4">
+        <p id="todayDateLabel" class="text-xs text-ios-gray mb-3"></p>
+        <div class="grid grid-cols-3 gap-3 mb-3">
           <div class="bg-ios-bg rounded-2xl p-3 text-center">
-            <p class="text-xs text-ios-gray">已攝取熱量</p>
-            <p id="todayCalories" class="text-2xl font-bold text-ios-red">0</p>
-            <p class="text-xs text-ios-gray">kcal</p>
+            <p id="dietSummaryIntakeLbl" class="text-xs text-ios-gray">已攝取</p>
+            <p id="todayCalories" class="text-lg font-bold text-ios-red">0</p>
+            <p class="text-[10px] text-ios-gray">kcal</p>
           </div>
           <div class="bg-ios-bg rounded-2xl p-3 text-center">
-            <p class="text-xs text-ios-gray">三大營養素</p>
-            <p class="text-xs mt-1"><span class="text-blue-500 font-bold">碳</span> <span id="todayCarbs">0</span>g · <span class="text-green-500 font-bold">蛋</span> <span id="todayProtein">0</span>g · <span class="text-yellow-500 font-bold">脂</span> <span id="todayFat">0</span>g</p>
+            <p class="text-xs text-ios-gray">目標</p>
+            <p id="goalCalories" class="text-lg font-bold text-ios-blue">—</p>
+            <p class="text-[10px] text-ios-gray">kcal</p>
+          </div>
+          <div class="bg-ios-bg rounded-2xl p-3 text-center">
+            <p class="text-xs text-ios-gray">剩餘</p>
+            <p id="remainCalories" class="text-sm font-bold text-ios-green leading-tight">—</p>
           </div>
         </div>
-
-        <!-- Comparison bar -->
-        <div class="space-y-3 mb-4">
-          <div>
-            <div class="flex justify-between text-xs mb-1">
-              <span class="text-ios-gray" id="todayGoalLabel">對比目標</span>
-              <span id="remainCalories" class="font-semibold text-ios-green">—</span>
-            </div>
-            <div class="h-4 bg-ios-bg rounded-full overflow-hidden">
-              <div id="todayCalBar" class="macro-bar h-full bg-gradient-to-r from-ios-blue to-blue-400 rounded-full" style="width:0%"></div>
-            </div>
+        <div class="mb-3">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-ios-gray" id="todayGoalLabel">對比目標</span>
+            <span id="todayMacroHint" class="text-ios-gray text-[10px]">—</span>
+          </div>
+          <div class="h-3 bg-ios-bg rounded-full overflow-hidden">
+            <div id="todayCalBar" class="macro-bar h-full bg-gradient-to-r from-ios-blue to-blue-400 rounded-full" style="width:0%"></div>
           </div>
         </div>
-
-        <!-- Today macro bars -->
-        <p id="todayMacroHint" class="text-[10px] text-ios-gray mb-2">今日已攝取 / 應攝取</p>
         <div class="space-y-2">
           <div>
             <div class="flex justify-between text-xs mb-1"><span class="font-medium text-blue-500">碳水</span><span id="todayCarbsPct" class="text-ios-gray">0/—g</span></div>
-            <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="todayCarbsBar" class="macro-bar h-full bg-blue-500 rounded-full" style="width:0%"></div></div>
+            <div class="h-2 bg-ios-bg rounded-full overflow-hidden"><div id="todayCarbsBar" class="macro-bar h-full bg-blue-500 rounded-full" style="width:0%"></div></div>
           </div>
           <div>
             <div class="flex justify-between text-xs mb-1"><span class="font-medium text-green-500">蛋白質</span><span id="todayProteinPct" class="text-ios-gray">0/—g</span></div>
-            <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="todayProteinBar" class="macro-bar h-full bg-green-500 rounded-full" style="width:0%"></div></div>
+            <div class="h-2 bg-ios-bg rounded-full overflow-hidden"><div id="todayProteinBar" class="macro-bar h-full bg-green-500 rounded-full" style="width:0%"></div></div>
           </div>
           <div>
             <div class="flex justify-between text-xs mb-1"><span class="font-medium text-yellow-500">脂肪</span><span id="todayFatPct" class="text-ios-gray">0/—g</span></div>
-            <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="todayFatBar" class="macro-bar h-full bg-yellow-400 rounded-full" style="width:0%"></div></div>
+            <div class="h-2 bg-ios-bg rounded-full overflow-hidden"><div id="todayFatBar" class="macro-bar h-full bg-yellow-400 rounded-full" style="width:0%"></div></div>
           </div>
         </div>
-        <button type="button" id="btnCopyDietAiPrompt" class="w-full mt-4 bg-ios-bg text-ios-blue text-sm font-semibold py-3 rounded-2xl border border-ios-blue/20 active:scale-95 transition-transform">✨ 複製「問 AI 今天怎麼吃」提示詞</button>
+      </div>
+
+      <!-- Month Switcher -->
+      <div class="flex items-center justify-between bg-white rounded-2xl shadow-sm px-4 py-3">
+        <button type="button" id="btnDietMonthPrev" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
+          <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <span id="dietMonthLabel" class="text-base font-semibold"></span>
+        <button type="button" id="btnDietMonthNext" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
+          <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+      <!-- Calendar + Records -->
+      <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
+        <div class="p-5 pb-3">
+          <div class="grid grid-cols-7 gap-1 mb-1 text-center text-[10px] text-ios-gray font-medium">
+            <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+          </div>
+          <div id="dietCalendarGrid" class="grid grid-cols-7 gap-1"></div>
+          <p class="text-[10px] text-ios-gray mt-2 text-center">點日期查看明細；藍底為有紀錄</p>
+        </div>
+        <div class="border-t border-gray-100 px-5 pt-3 pb-4">
+          <p id="dietListDateLabel" class="text-xs text-ios-gray">當日明細</p>
+          <div id="dietList" class="space-y-2 mt-2"></div>
+          <p id="dietEmpty" class="text-center text-ios-gray text-sm py-6 hidden">此日尚無飲食紀錄</p>
+        </div>
       </div>
 
       <!-- Quick Food Log -->
       <div class="bg-white rounded-3xl shadow-sm p-5">
         <h2 class="text-base font-bold mb-1">快速紀錄</h2>
-        <p class="text-xs text-ios-gray mb-3">點一下即加入，不用查營養標籤</p>
+        <p class="text-xs text-ios-gray mb-3">點一下即加入所選日期，不用查營養標籤</p>
         <input id="foodSearch" type="search" placeholder="搜尋：滷肉飯、雞便當、珍珠奶茶…" class="w-full bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30 mb-3">
         <div id="foodCategoryPills" class="flex gap-2 overflow-x-auto scrollbar-hide pb-2 mb-3"></div>
         <div id="recentFoodChips" class="hidden mb-3">
@@ -427,63 +365,49 @@
         </div>
       </div>
 
-      <!-- Photo Setting -->
-      <div class="bg-white rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between">
-        <div>
-          <p class="text-sm font-semibold">飲食照片</p>
-          <p class="text-[11px] text-ios-gray">減輕同步容量，到期自動清除</p>
-        </div>
-        <select id="photoRetentionSetting" class="bg-ios-bg rounded-xl px-3 py-2 text-sm border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
-          <option value="0">不儲存</option>
-          <option value="3">保留 3 天</option>
-          <option value="7">保留 7 天</option>
-        </select>
-      </div>
-
-      <!-- Camera & Add Food -->
       <div class="flex gap-3">
         <label id="cameraLabel" class="flex-1 flex items-center justify-center gap-2 bg-ios-blue text-white font-semibold py-3 rounded-2xl shadow-sm active:scale-95 transition-transform cursor-pointer">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          拍照紀錄飲食
+          拍照紀錄
           <input id="cameraInput" type="file" accept="image/*" capture="environment" class="hidden">
         </label>
         <button id="btnAddFoodManual" class="flex-1 bg-white text-ios-blue font-semibold py-3 rounded-2xl shadow-sm border border-ios-blue/20 active:scale-95 transition-transform">自訂紀錄</button>
       </div>
 
-      <!-- Diet Records -->
-      <div id="dietList" class="space-y-2"></div>
-      <p id="dietEmpty" class="text-center text-ios-gray text-sm py-8 hidden">今日尚無飲食紀錄</p>
-      </div>
-
-      <div id="dietCalendarPanel" class="hidden space-y-4">
-        <div class="bg-white rounded-3xl shadow-sm p-5">
-          <div class="flex items-center justify-between mb-4">
-            <button type="button" id="btnDietCalPrev" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
-              <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-            </button>
-            <span id="dietCalMonthLabel" class="text-base font-semibold"></span>
-            <button type="button" id="btnDietCalNext" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
-              <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-            </button>
+      <!-- 功能列表 -->
+      <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
+        <p class="text-xs text-ios-gray font-medium px-5 pt-4 pb-1">功能</p>
+        <button type="button" id="btnOpenDietProfile" class="w-full flex items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 active:bg-ios-bg transition-colors text-left">
+          <div class="min-w-0">
+            <p class="text-sm font-semibold">BMR / TDEE 與目標</p>
+            <p id="dietToolsProfileHint" class="text-[11px] text-ios-gray truncate">計算代謝與營養目標</p>
           </div>
-          <div class="grid grid-cols-7 gap-1 mb-1 text-center text-[10px] text-ios-gray font-medium">
-            <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+          <svg class="w-4 h-4 text-ios-gray shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <button type="button" id="btnOpenDietSummaries" class="w-full flex items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 active:bg-ios-bg transition-colors text-left">
+          <div class="min-w-0">
+            <p class="text-sm font-semibold">週月小結</p>
+            <p class="text-[11px] text-ios-gray">每週保留 3 個月，之後併入月結</p>
           </div>
-          <div id="dietCalendarGrid" class="grid grid-cols-7 gap-1"></div>
-          <p class="text-[10px] text-ios-gray mt-3 text-center">點日期查看當日攝取；藍底為有紀錄</p>
-        </div>
-
-        <div class="bg-white rounded-3xl shadow-sm p-5">
-          <h2 class="text-base font-bold mb-1">每週小結</h2>
-          <p class="text-[11px] text-ios-gray mb-3">詳細週結保留 3 個月，之後併入月結</p>
-          <div id="dietWeeklyList" class="space-y-2"></div>
-          <p id="dietWeeklyEmpty" class="text-center text-ios-gray text-sm py-4 hidden">尚無週小結</p>
-        </div>
-
-        <div class="bg-white rounded-3xl shadow-sm p-5">
-          <h2 class="text-base font-bold mb-1">每月總結</h2>
-          <div id="dietMonthlyList" class="space-y-2"></div>
-          <p id="dietMonthlyEmpty" class="text-center text-ios-gray text-sm py-4 hidden">尚無月總結</p>
+          <svg class="w-4 h-4 text-ios-gray shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <button type="button" id="btnCopyDietAiPrompt" class="w-full flex items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 active:bg-ios-bg transition-colors text-left">
+          <div class="min-w-0">
+            <p class="text-sm font-semibold">問 AI 怎麼吃</p>
+            <p class="text-[11px] text-ios-gray">複製提示詞給 ChatGPT 等</p>
+          </div>
+          <svg class="w-4 h-4 text-ios-gray shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <div class="flex items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100">
+          <div class="min-w-0">
+            <p class="text-sm font-semibold">飲食照片</p>
+            <p class="text-[11px] text-ios-gray">減輕同步容量</p>
+          </div>
+          <select id="photoRetentionSetting" class="bg-ios-bg rounded-xl px-3 py-2 text-sm border-0 outline-none focus:ring-2 focus:ring-ios-blue/30 shrink-0">
+            <option value="0">不儲存</option>
+            <option value="3">保留 3 天</option>
+            <option value="7">保留 7 天</option>
+          </select>
         </div>
       </div>
     </section>
@@ -701,16 +625,94 @@
     </div>
   </div>
 
-  <!-- Diet Day Detail Modal -->
-  <div id="modalDietDay" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black/40" data-close="modalDietDay"></div>
-    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom max-h-[80vh] overflow-y-auto">
+  <!-- Diet Profile Panel -->
+  <div id="modalDietProfile" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalDietProfile"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom max-h-[90vh] overflow-y-auto">
       <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
-      <h2 id="dietDayModalTitle" class="text-lg font-bold mb-2">飲食紀錄</h2>
-      <div id="dietDayModalSummary" class="grid grid-cols-2 gap-2 mb-4"></div>
-      <div id="dietDayModalList" class="space-y-2"></div>
-      <p id="dietDayModalEmpty" class="text-center text-ios-gray text-sm py-6 hidden">此日無詳細紀錄</p>
-      <button data-close="modalDietDay" class="w-full mt-4 bg-ios-bg text-ios-gray font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">關閉</button>
+      <h2 class="text-lg font-bold mb-1">BMR / TDEE 與目標</h2>
+      <p class="text-xs text-ios-gray mb-4">依 TDEE 與運動期營養比例（國健署為一般維持標準）</p>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="text-xs text-ios-gray">性別</label>
+          <select id="calcGender" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+            <option value="male">男性</option>
+            <option value="female">女性</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">年齡</label>
+          <input id="calcAge" type="number" inputmode="numeric" placeholder="25" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">身高 (cm)</label>
+          <input id="calcHeight" type="number" inputmode="decimal" placeholder="170" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">體重 (kg)</label>
+          <input id="calcWeight" type="number" inputmode="decimal" placeholder="70" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="text-xs text-ios-gray">活動量</label>
+        <select id="calcActivity" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          <option value="1.2">久坐（幾乎不運動）</option>
+          <option value="1.375">輕度（每週 1-3 天）</option>
+          <option value="1.55">中度（每週 3-5 天）</option>
+          <option value="1.725">高度（每週 6-7 天）</option>
+          <option value="1.9">極高（體力勞動/運動員）</option>
+        </select>
+      </div>
+      <button id="btnCalculate" class="w-full bg-ios-blue text-white font-semibold py-3 rounded-2xl active:scale-95 transition-transform">計算並儲存</button>
+      <div id="calcResult" class="mt-4 grid grid-cols-2 gap-3 hidden">
+        <div class="bg-ios-bg rounded-2xl p-3 text-center">
+          <p class="text-xs text-ios-gray">BMR</p>
+          <p id="resultBMR" class="text-lg font-bold text-ios-orange">—</p>
+          <p class="text-xs text-ios-gray">kcal/天</p>
+        </div>
+        <div class="bg-ios-bg rounded-2xl p-3 text-center">
+          <p class="text-xs text-ios-gray">TDEE</p>
+          <p id="resultTDEE" class="text-lg font-bold text-ios-blue">—</p>
+          <p class="text-xs text-ios-gray">kcal/天</p>
+        </div>
+      </div>
+      <div id="activeGoalPanel" class="mt-5 pt-5 border-t border-gray-100">
+        <p class="text-sm font-semibold mb-2">目標營養素</p>
+        <p id="goalModeLabel" class="text-xs text-ios-gray mb-1 hidden">—</p>
+        <p id="goalRatioHint" class="text-[10px] text-ios-gray mb-3">醣類 — · 蛋白 — · 脂質 —</p>
+        <div class="space-y-2">
+          <div>
+            <div class="flex justify-between text-xs mb-1"><span class="font-medium text-blue-500">碳水</span><span id="goalCarbsG" class="text-ios-gray">— g</span></div>
+            <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="goalCarbsBar" class="macro-bar h-full bg-blue-500 rounded-full" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1"><span class="font-medium text-green-500">蛋白質</span><span id="goalProteinG" class="text-ios-gray">— g</span></div>
+            <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="goalProteinBar" class="macro-bar h-full bg-green-500 rounded-full" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1"><span class="font-medium text-yellow-500">脂肪</span><span id="goalFatG" class="text-ios-gray">— g</span></div>
+            <div class="h-3 bg-ios-bg rounded-full overflow-hidden"><div id="goalFatBar" class="macro-bar h-full bg-yellow-400 rounded-full" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+      <button type="button" data-close="modalDietProfile" class="w-full mt-5 bg-ios-bg text-ios-gray font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">關閉</button>
+    </div>
+  </div>
+
+  <!-- Diet Summaries Panel -->
+  <div id="modalDietSummaries" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalDietSummaries"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom max-h-[85vh] overflow-y-auto">
+      <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
+      <h2 class="text-lg font-bold mb-4">週月小結</h2>
+      <p class="text-sm font-semibold mb-2">每週小結</p>
+      <p class="text-[11px] text-ios-gray mb-3">詳細週結保留 3 個月，之後併入月結</p>
+      <div id="dietWeeklyList" class="space-y-2 mb-5"></div>
+      <p id="dietWeeklyEmpty" class="text-center text-ios-gray text-sm py-4 hidden">尚無週小結</p>
+      <p class="text-sm font-semibold mb-2">每月總結</p>
+      <div id="dietMonthlyList" class="space-y-2"></div>
+      <p id="dietMonthlyEmpty" class="text-center text-ios-gray text-sm py-4 hidden">尚無月總結</p>
+      <button type="button" data-close="modalDietSummaries" class="w-full mt-4 bg-ios-bg text-ios-gray font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">關閉</button>
     </div>
   </div>
 
@@ -899,7 +901,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.4.2';
+    const APP_VERSION = '1.4.3';
     const DEFAULT_APP_ICON = 'green-moon';
     const ICON_THEMES = {
       'blue-v': '#007AFF',
@@ -977,7 +979,7 @@
       { id: 'calves', label: '小腿', recoveryH: 24, color: 'bg-gray-100 text-gray-600' }
     ];
     let activeFoodCategory = '全部';
-    let dietView = 'today';
+    let dietSelectedDate = todayStr();
     let dietCalYear = new Date().getFullYear();
     let dietCalMonth = new Date().getMonth();
     const CATEGORIES = ['食', '衣', '住', '行', '育', '樂', '其他'];
@@ -2202,8 +2204,8 @@
 
     function formatMacroIntake(actual, target) {
       const a = Math.round(actual);
-      const t = Math.round(target);
-      return `${a}/${t}g`;
+      if (target == null || isNaN(target)) return `${a}/—g`;
+      return `${a}/${Math.round(target)}g`;
     }
 
     function buildGoalTarget(tdee, mode) {
@@ -2235,8 +2237,8 @@
       return targets ? targets.active : null;
     }
 
-    function sumTodayDietNutrients() {
-      const records = getTodayDietRecords();
+    function sumDietNutrientsForDate(dateStr) {
+      const records = getDietDayRecords(dateStr);
       let cal = 0, carbs = 0, protein = 0, fat = 0;
       records.forEach(r => {
         cal += r.calories || 0;
@@ -2244,7 +2246,22 @@
         protein += r.protein || 0;
         fat += r.fat || 0;
       });
-      return { records, cal, carbs, protein, fat };
+      const archived = getDietDayTotals(dateStr);
+      if (!records.length && archived) {
+        return {
+          records,
+          cal: archived.calories,
+          carbs: archived.carbs,
+          protein: archived.protein,
+          fat: archived.fat,
+          archived: true
+        };
+      }
+      return { records, cal, carbs, protein, fat, archived: false };
+    }
+
+    function sumTodayDietNutrients() {
+      return sumDietNutrientsForDate(dietSelectedDate);
     }
 
     function buildDietAiPrompt() {
@@ -2254,7 +2271,9 @@
         weekday: 'long', hour: '2-digit', minute: '2-digit', hour12: false
       });
       const target = getActiveTarget();
-      const { records, cal, carbs, protein, fat } = sumTodayDietNutrients();
+      const { records, cal, carbs, protein, fat } = sumDietNutrientsForDate(dietSelectedDate);
+      const isToday = dietSelectedDate === todayStr();
+      const dayWord = isToday ? '今日' : '當日';
       const p = db.diet?.profile;
       const lines = [
         '請根據以下資訊，建議我「接下來」該怎麼吃（給出具體餐點建議與份量，繁體中文）：',
@@ -2265,19 +2284,19 @@
 
       if (target) {
         lines.push(`【飲食目標】${target.label}模式`);
-        if (p?.tdee) lines.push(`TDEE：${p.tdee} kcal · 今日熱量目標：${target.calories} kcal`);
+        if (p?.tdee) lines.push(`TDEE：${p.tdee} kcal · ${dayWord}熱量目標：${target.calories} kcal`);
         lines.push(`【目標營養素比例】${target.ratioNote}`);
-        lines.push(`【今日應攝取】熱量 ${target.calories} kcal · 碳水 ${target.macros.carbs}g · 蛋白質 ${target.macros.protein}g · 脂肪 ${target.macros.fat}g`);
+        lines.push(`【${dayWord}應攝取】熱量 ${target.calories} kcal · 碳水 ${target.macros.carbs}g · 蛋白質 ${target.macros.protein}g · 脂肪 ${target.macros.fat}g`);
       } else {
         lines.push('【飲食目標】尚未設定（請先在 App 計算並儲存 TDEE）');
       }
 
       lines.push('');
-      lines.push(`【今日已攝取】熱量 ${Math.round(cal)} kcal · 碳水 ${Math.round(carbs)}g · 蛋白質 ${Math.round(protein)}g · 脂肪 ${Math.round(fat)}g`);
+      lines.push(`【${dayWord}已攝取】熱量 ${Math.round(cal)} kcal · 碳水 ${Math.round(carbs)}g · 蛋白質 ${Math.round(protein)}g · 脂肪 ${Math.round(fat)}g`);
 
       if (target) {
         lines.push(
-          `【今日尚需】熱量約 ${Math.round(target.calories - cal)} kcal · 碳水約 ${Math.round(target.macros.carbs - carbs)}g · 蛋白質約 ${Math.round(target.macros.protein - protein)}g · 脂肪約 ${Math.round(target.macros.fat - fat)}g`
+          `【${dayWord}尚需】熱量約 ${Math.round(target.calories - cal)} kcal · 碳水約 ${Math.round(target.macros.carbs - carbs)}g · 蛋白質約 ${Math.round(target.macros.protein - protein)}g · 脂肪約 ${Math.round(target.macros.fat - fat)}g`
         );
       }
 
@@ -2285,14 +2304,14 @@
 
       lines.push('');
       if (records.length) {
-        lines.push('【今日已吃】');
+        lines.push(`【${dayWord}已吃】`);
         records.forEach((r, i) => {
           lines.push(
             `${i + 1}. ${r.name || '未命名'} — ${Math.round(r.calories || 0)} kcal（碳${Math.round(r.carbs || 0)}g · 蛋${Math.round(r.protein || 0)}g · 脂${Math.round(r.fat || 0)}g）`
           );
         });
       } else {
-        lines.push('【今日已吃】尚無紀錄');
+        lines.push(`【${dayWord}已吃】尚無紀錄`);
       }
 
       lines.push('');
@@ -2477,11 +2496,6 @@
 
     // ─── Render: Diet ───
 
-    function getTodayDietRecords() {
-      const today = todayStr();
-      return db.diet.records.filter(r => r.date === today);
-    }
-
     function estimateMacrosFromCalories(cal) {
       const c = Math.max(0, Math.round(cal));
       return {
@@ -2542,7 +2556,7 @@
       const ok = await mutateAndSync(() => {
         db.diet.records.push({
           id: uid(),
-          date: todayStr(),
+          date: dietSelectedDate || todayStr(),
           name,
           ...nutrients,
           image: null,
@@ -2597,7 +2611,7 @@
       });
       if (!target) {
         document.getElementById('goalModeLabel').textContent = cfg.label;
-        document.getElementById('goalCalories').textContent = '— kcal';
+        document.getElementById('goalCalories').textContent = '—';
         document.getElementById('goalRatioHint').textContent = '請先計算 TDEE';
         ['Carbs', 'Protein', 'Fat'].forEach(m => {
           document.getElementById(`goal${m}G`).textContent = '— g';
@@ -2608,7 +2622,7 @@
       const labelEl = document.getElementById('goalModeLabel');
       labelEl.textContent = target.label;
       labelEl.className = 'text-sm font-semibold ' + cfg.colorClass;
-      document.getElementById('goalCalories').textContent = target.calories + ' kcal';
+      document.getElementById('goalCalories').textContent = target.calories;
       document.getElementById('goalRatioHint').textContent = target.ratioNote || (
         `醣類 ${target.percents.carbs}% · 蛋白 ${target.percents.protein}% · 脂質 ${target.percents.fat}%`
       );
@@ -2671,12 +2685,30 @@
       }
     }
 
+    function setDietSelectedDate(dateStr) {
+      dietSelectedDate = dateStr;
+      const d = parseDateAtNoon(dateStr);
+      dietCalYear = d.getFullYear();
+      dietCalMonth = d.getMonth();
+    }
+
+    function shiftDietMonth(delta) {
+      dietCalMonth += delta;
+      if (dietCalMonth < 0) { dietCalMonth = 11; dietCalYear--; }
+      if (dietCalMonth > 11) { dietCalMonth = 0; dietCalYear++; }
+      const today = todayStr();
+      const inMonth = parseDateAtNoon(today).getFullYear() === dietCalYear
+        && parseDateAtNoon(today).getMonth() === dietCalMonth;
+      const sel = parseDateAtNoon(dietSelectedDate);
+      if (sel.getFullYear() !== dietCalYear || sel.getMonth() !== dietCalMonth) {
+        setDietSelectedDate(inMonth ? today : `${dietCalYear}-${pad2(dietCalMonth + 1)}-01`);
+      }
+    }
+
     function renderDietCalendar() {
-      document.getElementById('dietCalMonthLabel').textContent = monthLabel(dietCalYear, dietCalMonth);
       const grid = document.getElementById('dietCalendarGrid');
       if (!grid) return;
 
-      const first = new Date(dietCalYear, dietCalMonth, 1);
       const lastDate = new Date(dietCalYear, dietCalMonth + 1, 0).getDate();
       const startPad = monthCalendarStartPad(dietCalYear, dietCalMonth);
       const today = todayStr();
@@ -2690,86 +2722,119 @@
         const totals = getDietDayTotals(dateStr);
         const hasData = !!totals && (totals.calories > 0 || totals.meals > 0);
         const isToday = dateStr === today;
+        const isSelected = dateStr === dietSelectedDate;
         html += `
-          <button type="button" data-diet-day="${dateStr}" class="diet-cal-cell rounded-lg p-1 text-center active:scale-95 transition-transform ${hasData ? 'has-data' : 'bg-ios-bg/40'} ${isToday ? 'is-today' : ''}">
+          <button type="button" data-diet-day="${dateStr}" class="diet-cal-cell rounded-lg p-1 text-center active:scale-95 transition-transform ${hasData ? 'has-data' : 'bg-ios-bg/40'} ${isToday ? 'is-today' : ''} ${isSelected ? 'is-selected' : ''}">
             <span class="block text-[11px] font-semibold">${day}</span>
             ${hasData ? `<span class="block text-[9px] text-ios-red font-bold leading-tight">${Math.round(totals.calories)}</span>` : '<span class="block text-[9px] text-transparent">·</span>'}
           </button>
         `;
       }
       grid.innerHTML = html;
-      renderDietSummaries();
     }
 
-    function setDietView(view) {
-      dietView = view;
-      document.querySelectorAll('[data-diet-view]').forEach(btn => {
-        const active = btn.dataset.dietView === view;
-        btn.classList.toggle('active', active);
-        btn.classList.toggle('text-ios-gray', !active);
-      });
-      document.getElementById('dietTodayPanel').classList.toggle('hidden', view !== 'today');
-      document.getElementById('dietCalendarPanel').classList.toggle('hidden', view !== 'calendar');
-      if (view === 'calendar') renderDietCalendar();
-    }
-
-    function openDietDayModal(dateStr) {
-      const totals = getDietDayTotals(dateStr);
-      const records = getDietDayRecords(dateStr);
-      const d = parseDateAtNoon(dateStr);
-      document.getElementById('dietDayModalTitle').textContent = d.toLocaleDateString('zh-TW', {
+    function renderDietDaySummary() {
+      const dateStr = dietSelectedDate;
+      const isToday = dateStr === todayStr();
+      const dayWord = isToday ? '今日' : '當日';
+      document.getElementById('todayDateLabel').textContent = parseDateAtNoon(dateStr).toLocaleDateString('zh-TW', {
         year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
       });
+      document.getElementById('dietSummaryIntakeLbl').textContent = dayWord + '已攝取';
 
-      const summary = document.getElementById('dietDayModalSummary');
-      const list = document.getElementById('dietDayModalList');
-      const empty = document.getElementById('dietDayModalEmpty');
+      const { cal, carbs, protein, fat, archived } = sumDietNutrientsForDate(dateStr);
+      document.getElementById('todayCalories').textContent = Math.round(cal);
 
-      if (!totals) {
-        summary.innerHTML = '';
+      const targets = getTargets();
+      const active = targets?.active;
+      renderGoalTargetPanel(active);
+
+      const hintEl = document.getElementById('dietToolsProfileHint');
+      if (hintEl) {
+        const p = db.diet?.profile;
+        hintEl.textContent = p?.tdee
+          ? `TDEE ${p.tdee} kcal · ${active ? active.label : '未設目標'}`
+          : '計算代謝與營養目標';
+      }
+
+      if (active) {
+        const remain = active.calories - cal;
+        document.getElementById('todayGoalLabel').textContent = `對比${active.label}目標`;
+        const remainEl = document.getElementById('remainCalories');
+        if (remain >= 0) {
+          remainEl.textContent = remain;
+          remainEl.className = 'text-sm font-bold text-ios-green leading-tight';
+        } else {
+          remainEl.textContent = '+' + Math.abs(remain);
+          remainEl.className = 'text-sm font-bold text-ios-red leading-tight';
+        }
+        document.getElementById('todayCalBar').style.width = Math.min(100, cal / active.calories * 100) + '%';
+        document.getElementById('todayMacroHint').textContent = active.ratioNote || '';
+
+        const gm = active.macros;
+        document.getElementById('todayCarbsPct').textContent = formatMacroIntake(carbs, gm.carbs);
+        document.getElementById('todayProteinPct').textContent = formatMacroIntake(protein, gm.protein);
+        document.getElementById('todayFatPct').textContent = formatMacroIntake(fat, gm.fat);
+        document.getElementById('todayCarbsBar').style.width = gm.carbs > 0 ? Math.min(100, carbs / gm.carbs * 100) + '%' : '0%';
+        document.getElementById('todayProteinBar').style.width = gm.protein > 0 ? Math.min(100, protein / gm.protein * 100) + '%' : '0%';
+        document.getElementById('todayFatBar').style.width = gm.fat > 0 ? Math.min(100, fat / gm.fat * 100) + '%' : '0%';
+      } else {
+        document.getElementById('todayGoalLabel').textContent = '對比目標';
+        document.getElementById('remainCalories').textContent = '—';
+        document.getElementById('remainCalories').className = 'text-sm font-bold text-ios-gray leading-tight';
+        document.getElementById('todayCalBar').style.width = '0%';
+        document.getElementById('todayMacroHint').textContent = archived ? '僅有歸檔總計' : '請先計算 TDEE';
+        document.getElementById('todayCarbsPct').textContent = formatMacroIntake(carbs, null);
+        document.getElementById('todayProteinPct').textContent = formatMacroIntake(protein, null);
+        document.getElementById('todayFatPct').textContent = formatMacroIntake(fat, null);
+        document.getElementById('todayCarbsBar').style.width = '0%';
+        document.getElementById('todayProteinBar').style.width = '0%';
+        document.getElementById('todayFatBar').style.width = '0%';
+      }
+    }
+
+    function renderDietRecordList() {
+      const dateStr = dietSelectedDate;
+      const isToday = dateStr === todayStr();
+      const label = parseDateAtNoon(dateStr).toLocaleDateString('zh-TW', {
+        month: 'long', day: 'numeric', weekday: 'short'
+      });
+      document.getElementById('dietListDateLabel').textContent =
+        (isToday ? '今日' : '當日') + '明細 · ' + label;
+
+      const { records, archived } = sumDietNutrientsForDate(dateStr);
+      const list = document.getElementById('dietList');
+      const empty = document.getElementById('dietEmpty');
+
+      if (records.length === 0) {
         list.innerHTML = '';
         empty.classList.remove('hidden');
-        empty.textContent = '此日無飲食紀錄';
-        openModal('modalDietDay');
+        empty.textContent = archived ? '此日僅有歸檔總計，無詳細餐點' : '此日尚無飲食紀錄';
         return;
       }
-
       empty.classList.add('hidden');
-      summary.innerHTML = `
-        <div class="bg-ios-bg rounded-xl p-3 text-center col-span-2">
-          <p class="text-xs text-ios-gray">總熱量</p>
-          <p class="text-xl font-bold text-ios-red">${Math.round(totals.calories)} kcal</p>
-        </div>
-        <div class="bg-ios-bg rounded-xl p-3 text-center">
-          <p class="text-xs text-ios-gray">碳水</p>
-          <p class="text-sm font-bold">${Math.round(totals.carbs)}g</p>
-        </div>
-        <div class="bg-ios-bg rounded-xl p-3 text-center">
-          <p class="text-xs text-ios-gray">蛋白 · 脂肪</p>
-          <p class="text-sm font-bold">${Math.round(totals.protein)}g · ${Math.round(totals.fat)}g</p>
-        </div>
-      `;
-
-      if (records.length) {
-        list.innerHTML = records.map(r => `
-          <div class="bg-ios-bg rounded-xl p-3 flex justify-between gap-2">
-            <div class="min-w-0">
-              <p class="text-sm font-semibold truncate">${r.name || '飲食'}</p>
-              <p class="text-[11px] text-ios-gray">碳 ${Math.round(r.carbs || 0)} · 蛋 ${Math.round(r.protein || 0)} · 脂 ${Math.round(r.fat || 0)}</p>
+      list.innerHTML = records.map(r => `
+        <div class="bg-ios-bg rounded-2xl overflow-hidden">
+          ${r.image ? `<img src="${r.image}" class="w-full h-32 object-cover" alt="${r.name}">` : ''}
+          <div class="p-4 flex items-center gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-sm truncate">${r.name || '未命名'}</p>
+              <p class="text-xs text-ios-gray mt-0.5">
+                <span class="text-ios-red font-bold">${r.calories || 0}</span> kcal ·
+                碳 <span class="text-blue-500 font-bold">${Math.round(r.carbs || 0)}</span>g ·
+                蛋 <span class="text-green-500 font-bold">${Math.round(r.protein || 0)}</span>g ·
+                脂 <span class="text-yellow-500 font-bold">${Math.round(r.fat || 0)}</span>g
+              </p>
             </div>
-            <p class="text-sm font-bold text-ios-red shrink-0">${Math.round(r.calories || 0)}</p>
+            <button data-delete-diet="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
           </div>
-        `).join('');
-      } else {
-        list.innerHTML = '';
-        empty.classList.remove('hidden');
-        empty.textContent = totals.source === 'weekly' ? '詳細餐點已歸檔，僅保留當日總計' : '此日無詳細紀錄';
-      }
-      openModal('modalDietDay');
+        </div>
+      `).join('');
     }
 
     function renderDiet() {
-      setDietView(dietView);
       renderFoodPicker();
       const retention = getPhotoRetentionDays();
       const photoSelect = document.getElementById('photoRetentionSetting');
@@ -2791,85 +2856,16 @@
           document.getElementById('calcResult').classList.remove('hidden');
           document.getElementById('resultBMR').textContent = p.bmr;
           document.getElementById('resultTDEE').textContent = p.tdee;
+        } else {
+          document.getElementById('calcResult').classList.add('hidden');
         }
       }
 
-      const targets = getTargets();
-      const active = targets?.active;
-      renderGoalTargetPanel(active);
-
-      document.getElementById('todayDateLabel').textContent = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-
-      const todayRecords = getTodayDietRecords();
-      let cal = 0, carbs = 0, protein = 0, fat = 0;
-      todayRecords.forEach(r => {
-        cal += r.calories || 0;
-        carbs += r.carbs || 0;
-        protein += r.protein || 0;
-        fat += r.fat || 0;
-      });
-
-      document.getElementById('todayCalories').textContent = cal;
-      document.getElementById('todayCarbs').textContent = Math.round(carbs);
-      document.getElementById('todayProtein').textContent = Math.round(protein);
-      document.getElementById('todayFat').textContent = Math.round(fat);
-
-      if (active) {
-        const remain = active.calories - cal;
-        document.getElementById('todayGoalLabel').textContent = `對比${active.label}目標`;
-        document.getElementById('remainCalories').textContent = remain >= 0 ? `尚可攝取 ${remain} kcal` : `超出 ${Math.abs(remain)} kcal`;
-        document.getElementById('remainCalories').className = 'font-semibold ' + (remain >= 0 ? 'text-ios-green' : 'text-ios-red');
-        document.getElementById('todayCalBar').style.width = Math.min(100, cal / active.calories * 100) + '%';
-        document.getElementById('todayMacroHint').textContent =
-          `${active.label}目標 · 今日已攝取 / 應攝取 · ${active.ratioNote}`;
-
-        const gm = active.macros;
-        document.getElementById('todayCarbsPct').textContent = formatMacroIntake(carbs, gm.carbs);
-        document.getElementById('todayProteinPct').textContent = formatMacroIntake(protein, gm.protein);
-        document.getElementById('todayFatPct').textContent = formatMacroIntake(fat, gm.fat);
-        document.getElementById('todayCarbsBar').style.width = gm.carbs > 0 ? Math.min(100, carbs / gm.carbs * 100) + '%' : '0%';
-        document.getElementById('todayProteinBar').style.width = gm.protein > 0 ? Math.min(100, protein / gm.protein * 100) + '%' : '0%';
-        document.getElementById('todayFatBar').style.width = gm.fat > 0 ? Math.min(100, fat / gm.fat * 100) + '%' : '0%';
-      } else {
-        document.getElementById('todayGoalLabel').textContent = '對比目標';
-        document.getElementById('remainCalories').textContent = '請先計算 TDEE';
-        document.getElementById('todayCalBar').style.width = '0%';
-        document.getElementById('todayMacroHint').textContent = '今日已攝取 / 應攝取';
-        document.getElementById('todayCarbsPct').textContent = '0/—g';
-        document.getElementById('todayProteinPct').textContent = '0/—g';
-        document.getElementById('todayFatPct').textContent = '0/—g';
-        document.getElementById('todayCarbsBar').style.width = '0%';
-        document.getElementById('todayProteinBar').style.width = '0%';
-        document.getElementById('todayFatBar').style.width = '0%';
-      }
-
-      const list = document.getElementById('dietList');
-      const empty = document.getElementById('dietEmpty');
-      if (todayRecords.length === 0) {
-        list.innerHTML = '';
-        empty.classList.remove('hidden');
-        return;
-      }
-      empty.classList.add('hidden');
-      list.innerHTML = todayRecords.map(r => `
-        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-          ${r.image ? `<img src="${r.image}" class="w-full h-36 object-cover" alt="${r.name}">` : ''}
-          <div class="p-4 flex items-center gap-3">
-            <div class="flex-1 min-w-0">
-              <p class="font-semibold text-sm truncate">${r.name || '未命名'}</p>
-              <p class="text-xs text-ios-gray mt-0.5">
-                <span class="text-ios-red font-bold">${r.calories || 0}</span> kcal ·
-                碳 <span class="text-blue-500 font-bold">${Math.round(r.carbs || 0)}</span>g ·
-                蛋 <span class="text-green-500 font-bold">${Math.round(r.protein || 0)}</span>g ·
-                脂 <span class="text-yellow-500 font-bold">${Math.round(r.fat || 0)}</span>g
-              </p>
-            </div>
-            <button data-delete-diet="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            </button>
-          </div>
-        </div>
-      `).join('');
+      document.getElementById('dietMonthLabel').textContent = monthLabel(dietCalYear, dietCalMonth);
+      renderDietDaySummary();
+      renderDietCalendar();
+      renderDietRecordList();
+      renderDietSummaries();
     }
 
     // ─── Render: Sleep ───
@@ -3403,9 +3399,6 @@
         openModal('modalDiet');
       });
 
-      document.querySelectorAll('[data-diet-view]').forEach(btn => {
-        btn.addEventListener('click', () => setDietView(btn.dataset.dietView));
-      });
       document.querySelectorAll('[data-diet-goal]').forEach(btn => {
         btn.addEventListener('click', async () => {
           const mode = btn.dataset.dietGoal;
@@ -3415,21 +3408,28 @@
           showToast(`已切換至${HPA_DIET_GOALS[mode].label}模式`);
         });
       });
-      document.getElementById('btnCopyDietAiPrompt').addEventListener('click', copyDietAiPrompt);
-      document.getElementById('btnDietCalPrev').addEventListener('click', () => {
-        dietCalMonth--;
-        if (dietCalMonth < 0) { dietCalMonth = 11; dietCalYear--; }
-        renderDietCalendar();
+      document.getElementById('btnOpenDietProfile').addEventListener('click', () => {
+        renderGoalTargetPanel(getActiveTarget());
+        openModal('modalDietProfile');
       });
-      document.getElementById('btnDietCalNext').addEventListener('click', () => {
-        dietCalMonth++;
-        if (dietCalMonth > 11) { dietCalMonth = 0; dietCalYear++; }
-        renderDietCalendar();
+      document.getElementById('btnOpenDietSummaries').addEventListener('click', () => {
+        renderDietSummaries();
+        openModal('modalDietSummaries');
+      });
+      document.getElementById('btnCopyDietAiPrompt').addEventListener('click', copyDietAiPrompt);
+      document.getElementById('btnDietMonthPrev').addEventListener('click', () => {
+        shiftDietMonth(-1);
+        renderDiet();
+      });
+      document.getElementById('btnDietMonthNext').addEventListener('click', () => {
+        shiftDietMonth(1);
+        renderDiet();
       });
       document.getElementById('dietCalendarGrid').addEventListener('click', (e) => {
         const btn = e.target.closest('[data-diet-day]');
         if (!btn) return;
-        openDietDayModal(btn.dataset.dietDay);
+        setDietSelectedDate(btn.dataset.dietDay);
+        renderDiet();
       });
 
       document.getElementById('btnToggleDietDetail').addEventListener('click', () => {
@@ -3530,7 +3530,7 @@
         const ok = await mutateAndSync(() => {
           db.diet.records.push({
             id: uid(),
-            date: todayStr(),
+            date: dietSelectedDate || todayStr(),
             name: name || '飲食紀錄',
             ...nutrients,
             image: isPhotoStorageEnabled() ? (image || null) : null

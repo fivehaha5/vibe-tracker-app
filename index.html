@@ -339,6 +339,14 @@
         <p class="text-xs text-ios-gray mb-3">點一下即加入所選日期，不用查營養標籤</p>
         <input id="foodSearch" type="search" placeholder="搜尋：滷肉飯、雞便當、珍珠奶茶…" class="w-full bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30 mb-3">
         <div id="foodCategoryPills" class="flex gap-2 overflow-x-auto scrollbar-hide pb-2 mb-3"></div>
+        <div class="mb-3">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-xs text-ios-gray">我的常吃</p>
+            <button type="button" id="btnAddFavoriteFood" class="text-xs text-ios-blue font-semibold active:scale-95 transition-transform">＋ 新增常吃</button>
+          </div>
+          <div id="favoriteFoodList" class="flex gap-2 overflow-x-auto scrollbar-hide"></div>
+          <p id="favoriteFoodEmpty" class="text-[11px] text-ios-gray py-1">尚無常吃，點右上方新增（歸檔後仍保留）</p>
+        </div>
         <div id="recentFoodChips" class="hidden mb-3">
           <p class="text-xs text-ios-gray mb-2">最近常吃</p>
           <div id="recentFoodList" class="flex gap-2 overflow-x-auto scrollbar-hide"></div>
@@ -377,6 +385,13 @@
       <!-- 功能列表 -->
       <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
         <p class="text-xs text-ios-gray font-medium px-5 pt-4 pb-1">功能</p>
+        <button type="button" id="btnOpenFavoriteFoods" class="w-full flex items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 active:bg-ios-bg transition-colors text-left">
+          <div class="min-w-0">
+            <p class="text-sm font-semibold">管理常吃</p>
+            <p id="dietToolsFavoriteHint" class="text-[11px] text-ios-gray truncate">歸檔後仍保留，一鍵快速紀錄</p>
+          </div>
+          <svg class="w-4 h-4 text-ios-gray shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
         <button type="button" id="btnOpenDietProfile" class="w-full flex items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 active:bg-ios-bg transition-colors text-left">
           <div class="min-w-0">
             <p class="text-sm font-semibold">BMR / TDEE 與目標</p>
@@ -853,6 +868,46 @@
     </div>
   </div>
 
+  <!-- Favorite Food Modal -->
+  <div id="modalFavoriteFood" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close="modalFavoriteFood"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom max-h-[90vh] overflow-y-auto">
+      <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
+      <h2 id="favoriteFoodModalTitle" class="text-lg font-bold mb-1">新增常吃</h2>
+      <p class="text-xs text-ios-gray mb-4">儲存後不受週歸檔影響，可一鍵加入紀錄</p>
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-ios-gray">名稱</label>
+          <input id="favFoodName" type="text" placeholder="例如：雞胸便當、無糖豆漿" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">熱量 (kcal)</label>
+          <input id="favFoodCalories" type="number" inputmode="numeric" placeholder="選填，可自動估算營養素" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="text-xs text-ios-gray">碳水 g</label>
+            <input id="favFoodCarbs" type="number" inputmode="decimal" placeholder="—" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+          <div>
+            <label class="text-xs text-ios-gray">蛋白 g</label>
+            <input id="favFoodProtein" type="number" inputmode="decimal" placeholder="—" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+          <div>
+            <label class="text-xs text-ios-gray">脂肪 g</label>
+            <input id="favFoodFat" type="number" inputmode="decimal" placeholder="—" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-2.5 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          </div>
+        </div>
+      </div>
+      <button id="btnSaveFavoriteFood" class="w-full mt-5 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存常吃</button>
+      <div id="favoriteFoodManageBlock" class="mt-6 pt-5 border-t border-gray-100 hidden">
+        <p class="text-sm font-semibold mb-2">已儲存的常吃</p>
+        <div id="favoriteFoodManageList" class="space-y-2"></div>
+      </div>
+      <button type="button" data-close="modalFavoriteFood" class="w-full mt-3 bg-ios-bg text-ios-gray font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">關閉</button>
+    </div>
+  </div>
+
   <!-- Sleep Entry Modal -->
   <div id="modalSleep" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black/40" data-close="modalSleep"></div>
@@ -929,7 +984,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.4.5';
+    const APP_VERSION = '1.4.6';
     const DEFAULT_APP_ICON = 'green-moon';
     const ICON_THEMES = {
       'blue-v': '#007AFF',
@@ -1068,6 +1123,7 @@
           profile: null,
           goalMode: 'cut',
           records: [],
+          favoriteFoods: [],
           weeklySummaries: [],
           monthlySummaries: [],
           photoRetentionDays: DEFAULT_PHOTO_RETENTION_DAYS
@@ -1184,6 +1240,36 @@
       if (!Array.isArray(db.diet.records)) db.diet.records = [];
       if (!Array.isArray(db.diet.weeklySummaries)) db.diet.weeklySummaries = [];
       if (!Array.isArray(db.diet.monthlySummaries)) db.diet.monthlySummaries = [];
+      if (!Array.isArray(db.diet.favoriteFoods)) db.diet.favoriteFoods = [];
+    }
+
+    function getFavoriteFoods() {
+      ensureDietSchema();
+      return db.diet.favoriteFoods || [];
+    }
+
+    function mergeFavoriteFoods(remote, local) {
+      const byId = new Map();
+      [...(remote || []), ...(local || [])].forEach(f => {
+        if (!f?.id) return;
+        byId.set(f.id, f);
+      });
+      return Array.from(byId.values());
+    }
+
+    function upsertFavoriteFood(food) {
+      ensureDietSchema();
+      const name = (food.name || '').trim();
+      if (!name) return null;
+      const nutrients = resolveFoodNutrients(food);
+      const existing = db.diet.favoriteFoods.find(f => f.name === name);
+      if (existing) {
+        Object.assign(existing, { name, ...nutrients });
+        return existing;
+      }
+      const entry = { id: uid(), name, ...nutrients };
+      db.diet.favoriteFoods.push(entry);
+      return entry;
     }
 
     function parseDateAtNoon(dateStr) {
@@ -1985,6 +2071,7 @@
           profile,
           goalMode: local.diet?.goalMode || remote.diet?.goalMode || 'cut',
           records: dietRecords,
+          favoriteFoods: mergeFavoriteFoods(remote.diet?.favoriteFoods, local.diet?.favoriteFoods),
           weeklySummaries: mergeDietSummaries(remote.diet?.weeklySummaries, local.diet?.weeklySummaries, 'weekStart'),
           monthlySummaries: mergeDietSummaries(remote.diet?.monthlySummaries, local.diet?.monthlySummaries, 'monthKey'),
           photoRetentionDays: typeof local.diet?.photoRetentionDays === 'number'
@@ -2576,6 +2663,63 @@
       return Array.from(seen.values()).slice(0, limit || 8);
     }
 
+    function renderFavoriteFoodManageList() {
+      const favs = getFavoriteFoods();
+      const list = document.getElementById('favoriteFoodManageList');
+      const block = document.getElementById('favoriteFoodManageBlock');
+      const hint = document.getElementById('dietToolsFavoriteHint');
+      if (hint) {
+        hint.textContent = favs.length
+          ? `已儲存 ${favs.length} 項常吃`
+          : '歸檔後仍保留，一鍵快速紀錄';
+      }
+      if (!list || !block) return;
+      if (!favs.length) {
+        block.classList.add('hidden');
+        list.innerHTML = '';
+        return;
+      }
+      block.classList.remove('hidden');
+      list.innerHTML = favs.map(f => `
+        <div class="flex items-center gap-3 bg-ios-bg rounded-xl px-3 py-2.5">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold truncate">${f.name}</p>
+            <p class="text-[11px] text-ios-gray">${f.calories || 0} kcal</p>
+          </div>
+          <button type="button" data-delete-fav="${f.id}" class="text-xs text-ios-red font-semibold px-2 py-1 active:scale-95 transition-transform">刪除</button>
+        </div>
+      `).join('');
+    }
+
+    function openFavoriteFoodModal(manageMode) {
+      document.getElementById('favoriteFoodModalTitle').textContent = manageMode ? '管理常吃' : '新增常吃';
+      document.getElementById('favFoodName').value = '';
+      document.getElementById('favFoodCalories').value = '';
+      document.getElementById('favFoodCarbs').value = '';
+      document.getElementById('favFoodProtein').value = '';
+      document.getElementById('favFoodFat').value = '';
+      renderFavoriteFoodManageList();
+      const block = document.getElementById('favoriteFoodManageBlock');
+      if (block) block.classList.toggle('hidden', !manageMode && !getFavoriteFoods().length);
+      openModal('modalFavoriteFood');
+    }
+
+    function renderFavoriteFoodChips() {
+      const favorites = getFavoriteFoods();
+      const favList = document.getElementById('favoriteFoodList');
+      const favEmpty = document.getElementById('favoriteFoodEmpty');
+      if (!favList || !favEmpty) return;
+      if (favorites.length) {
+        favEmpty.classList.add('hidden');
+        favList.innerHTML = favorites.map(f => `
+          <button type="button" data-fav-food="${encodeURIComponent(f.name)}" class="shrink-0 px-3 py-2 bg-blue-50 text-ios-blue rounded-xl text-xs font-semibold active:scale-95 transition-transform">${f.name}</button>
+        `).join('');
+      } else {
+        favEmpty.classList.remove('hidden');
+        favList.innerHTML = '';
+      }
+    }
+
     function filterFoodLibrary(query, category) {
       const q = (query || '').trim().toLowerCase();
       return FOOD_LIBRARY.filter(f => {
@@ -2610,6 +2754,8 @@
       pills.innerHTML = FOOD_CATEGORIES.map(cat => `
         <button type="button" data-food-cat="${cat}" class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold active:scale-95 transition-transform ${activeFoodCategory === cat ? 'bg-ios-blue text-white' : 'bg-ios-bg text-ios-gray'}">${cat}</button>
       `).join('');
+
+      renderFavoriteFoodChips();
 
       const recent = getRecentFoods(8);
       const recentWrap = document.getElementById('recentFoodChips');
@@ -2861,6 +3007,9 @@
                 脂 <span class="text-yellow-500 font-bold">${Math.round(r.fat || 0)}</span>g
               </p>
             </div>
+            <button data-save-fav-diet="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-amber-500 active:scale-95 transition-transform" aria-label="存為常吃" title="存為常吃">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </button>
             <button data-edit-diet="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-blue active:scale-95 transition-transform" aria-label="編輯">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             </button>
@@ -2874,6 +3023,7 @@
 
     function renderDiet() {
       renderFoodPicker();
+      renderFavoriteFoodManageList();
       const retention = getPhotoRetentionDays();
       const photoSelect = document.getElementById('photoRetentionSetting');
       if (photoSelect) photoSelect.value = String(retention);
@@ -3463,6 +3613,46 @@
           showToast(`已切換至${HPA_DIET_GOALS[mode].label}模式`);
         });
       });
+      document.getElementById('btnOpenFavoriteFoods').addEventListener('click', () => openFavoriteFoodModal(true));
+      document.getElementById('btnAddFavoriteFood').addEventListener('click', () => openFavoriteFoodModal(false));
+      document.getElementById('btnSaveFavoriteFood').addEventListener('click', async () => {
+        const name = document.getElementById('favFoodName').value.trim();
+        if (!name) { showToast('請輸入名稱', true); return; }
+        const nutrients = resolveFoodNutrients({
+          calories: document.getElementById('favFoodCalories').value,
+          carbs: document.getElementById('favFoodCarbs').value,
+          protein: document.getElementById('favFoodProtein').value,
+          fat: document.getElementById('favFoodFat').value
+        });
+        const ok = await mutateAndSync(() => upsertFavoriteFood({ name, ...nutrients }));
+        document.getElementById('favFoodName').value = '';
+        document.getElementById('favFoodCalories').value = '';
+        document.getElementById('favFoodCarbs').value = '';
+        document.getElementById('favFoodProtein').value = '';
+        document.getElementById('favFoodFat').value = '';
+        renderFavoriteFoodChips();
+        renderFavoriteFoodManageList();
+        showToast(ok ? `已儲存常吃：${name}` : `已儲存（本機）：${name}`, !ok);
+      });
+      document.getElementById('favoriteFoodList').addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-fav-food]');
+        if (!btn) return;
+        const name = decodeURIComponent(btn.dataset.favFood);
+        const fav = getFavoriteFoods().find(f => f.name === name);
+        if (fav) await quickAddFood(fav);
+      });
+      document.getElementById('favoriteFoodManageList').addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-delete-fav]');
+        if (!btn) return;
+        const id = btn.dataset.deleteFav;
+        if (!confirm('確定刪除此項常吃？')) return;
+        const ok = await mutateAndSync(() => {
+          db.diet.favoriteFoods = db.diet.favoriteFoods.filter(f => f.id !== id);
+        });
+        renderFavoriteFoodChips();
+        renderFavoriteFoodManageList();
+        showToast(ok ? '已刪除常吃' : '已刪除（本機）', !ok);
+      });
       document.getElementById('btnOpenDietProfile').addEventListener('click', () => {
         renderGoalTargetPanel(getActiveTarget());
         openModal('modalDietProfile');
@@ -3615,8 +3805,18 @@
       });
 
       document.getElementById('dietList').addEventListener('click', async (e) => {
+        const favBtn = e.target.closest('[data-save-fav-diet]');
         const editBtn = e.target.closest('[data-edit-diet]');
         const delBtn = e.target.closest('[data-delete-diet]');
+        if (favBtn) {
+          const rec = db.diet.records.find(r => r.id === favBtn.dataset.saveFavDiet);
+          if (rec) {
+            const ok = await mutateAndSync(() => upsertFavoriteFood(rec));
+            renderFoodPicker();
+            showToast(ok ? `已加入常吃：${rec.name}` : `已加入常吃（本機）：${rec.name}`, !ok);
+          }
+          return;
+        }
         if (editBtn) {
           const rec = db.diet.records.find(r => r.id === editBtn.dataset.editDiet);
           if (rec) openDietModal(rec);

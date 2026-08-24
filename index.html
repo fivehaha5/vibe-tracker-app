@@ -187,8 +187,9 @@
           <p class="text-xs font-medium opacity-80">總資產</p>
           <button type="button" id="btnOpenWallets" class="text-xs font-semibold opacity-90 bg-white/20 px-2.5 py-1 rounded-lg active:scale-95 transition-transform">管理錢包</button>
         </div>
-        <p id="totalNetWorth" class="text-3xl font-bold tracking-tight mb-4">$0</p>
-        <div class="grid grid-cols-3 gap-2">
+        <p id="totalNetWorth" class="text-3xl font-bold tracking-tight">$0</p>
+        <p id="totalNetWorthFx" class="text-xs opacity-80 mt-1 hidden"></p>
+        <div class="grid grid-cols-3 gap-2 mt-4">
           <div class="bg-white/15 rounded-2xl p-3 text-center">
             <p class="text-[10px] opacity-70 mb-0.5">月收入</p>
             <p id="totalIncome" class="text-base font-bold">$0</p>
@@ -642,7 +643,7 @@
       <h2 id="financeModalTitle" class="text-lg font-bold mb-4">新增紀錄</h2>
       <div class="space-y-3">
         <div>
-          <label class="text-xs text-ios-gray">金額</label>
+          <label class="text-xs text-ios-gray">金額 <span id="finAmountCurrency" class="text-ios-blue font-semibold">TWD</span></label>
           <input id="finAmount" type="number" inputmode="decimal" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
         </div>
         <div>
@@ -983,6 +984,24 @@
           </select>
         </div>
         <div>
+          <label class="text-xs text-ios-gray">幣別</label>
+          <select id="walletCurrency" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+            <option value="TWD">TWD 新台幣</option>
+            <option value="USD">USD 美元</option>
+            <option value="EUR">EUR 歐元</option>
+            <option value="JPY">JPY 日圓</option>
+            <option value="HKD">HKD 港幣</option>
+            <option value="CNY">CNY 人民幣</option>
+            <option value="GBP">GBP 英鎊</option>
+            <option value="KRW">KRW 韓元</option>
+            <option value="SGD">SGD 新加坡幣</option>
+            <option value="AUD">AUD 澳幣</option>
+            <option value="USDT">USDT</option>
+            <option value="USDC">USDC</option>
+          </select>
+          <p class="text-[11px] text-ios-gray mt-1">OKX 信用卡等外幣帳戶請選對應幣別，勿與台幣混加</p>
+        </div>
+        <div>
           <label class="text-xs text-ios-gray">初始餘額（當前餘額）</label>
           <input id="walletOpeningBalance" type="number" inputmode="decimal" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
         </div>
@@ -1088,7 +1107,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.4.8';
+    const APP_VERSION = '1.4.9';
     const DEFAULT_APP_ICON = 'green-moon';
     const ICON_THEMES = {
       'blue-v': '#007AFF',
@@ -1398,11 +1417,69 @@
       cash: '💵', bank: '🏦', credit: '💳', epay: '📱', other: '💰'
     };
 
+    const CURRENCIES = [
+      { code: 'TWD', fraction: 0 },
+      { code: 'USD', fraction: 2 },
+      { code: 'EUR', fraction: 2 },
+      { code: 'JPY', fraction: 0 },
+      { code: 'HKD', fraction: 1 },
+      { code: 'CNY', fraction: 2 },
+      { code: 'GBP', fraction: 2 },
+      { code: 'KRW', fraction: 0 },
+      { code: 'SGD', fraction: 2 },
+      { code: 'AUD', fraction: 2 },
+      { code: 'USDT', fraction: 2 },
+      { code: 'USDC', fraction: 2 }
+    ];
+    const DEFAULT_CURRENCY = 'TWD';
+
+    function normalizeCurrency(code) {
+      const c = String(code || DEFAULT_CURRENCY).toUpperCase();
+      return CURRENCIES.some(x => x.code === c) ? c : DEFAULT_CURRENCY;
+    }
+
+    function getWalletCurrency(wallet) {
+      return normalizeCurrency(wallet?.currency);
+    }
+
+    function getRecordCurrency(record) {
+      if (!record?.walletId) return DEFAULT_CURRENCY;
+      return getWalletCurrency(getWalletById(record.walletId));
+    }
+
+    function formatMoney(n, currency) {
+      const code = normalizeCurrency(currency);
+      const meta = CURRENCIES.find(c => c.code === code) || CURRENCIES[0];
+      const amount = Number(n) || 0;
+      if (code === 'USDT' || code === 'USDC') {
+        return code + ' ' + amount.toLocaleString('en-US', {
+          minimumFractionDigits: meta.fraction,
+          maximumFractionDigits: meta.fraction
+        });
+      }
+      try {
+        return amount.toLocaleString('zh-TW', {
+          style: 'currency',
+          currency: code,
+          minimumFractionDigits: meta.fraction,
+          maximumFractionDigits: meta.fraction
+        });
+      } catch {
+        return code + ' ' + amount.toLocaleString('zh-TW', {
+          minimumFractionDigits: meta.fraction,
+          maximumFractionDigits: meta.fraction
+        });
+      }
+    }
+
     function ensureFinanceSchema() {
       if (!db.finance) db.finance = {};
       if (!Array.isArray(db.finance.wallets)) db.finance.wallets = [];
       if (!Array.isArray(db.finance.records)) db.finance.records = [];
       if (!Array.isArray(db.finance.subscriptions)) db.finance.subscriptions = [];
+      db.finance.wallets.forEach(w => {
+        if (!w.currency) w.currency = DEFAULT_CURRENCY;
+      });
     }
 
     function getDefaultWalletId() {
@@ -1427,10 +1504,19 @@
     }
 
     function getTotalNetWorth() {
+      return getNetWorthByCurrency()[DEFAULT_CURRENCY] || 0;
+    }
+
+    function getNetWorthByCurrency() {
       ensureFinanceSchema();
-      return db.finance.wallets
+      const by = {};
+      db.finance.wallets
         .filter(w => !w.archived && w.includeInTotal !== false)
-        .reduce((sum, w) => sum + getWalletBalance(w), 0);
+        .forEach(w => {
+          const code = getWalletCurrency(w);
+          by[code] = (by[code] || 0) + getWalletBalance(w);
+        });
+      return by;
     }
 
     function migrateFinanceRecordsWalletId() {
@@ -1442,7 +1528,7 @@
       if (!defaultWallet) {
         defaultWallet = {
           id: uid(), name: '預設錢包', type: 'cash', openingBalance: 0,
-          includeInTotal: true, archived: false, color: 'blue', isDefault: true
+          includeInTotal: true, archived: false, color: 'blue', isDefault: true, currency: DEFAULT_CURRENCY
         };
         wallets.unshift(defaultWallet);
       }
@@ -1470,6 +1556,7 @@
       document.getElementById('walletName').value = wallet?.name || '';
       document.getElementById('walletType').value = wallet?.type || 'cash';
       document.getElementById('walletOpeningBalance').value = wallet != null ? (wallet.openingBalance ?? '') : '';
+      document.getElementById('walletCurrency').value = getWalletCurrency(wallet);
       document.getElementById('walletIncludeInTotal').checked = wallet?.includeInTotal !== false;
       document.querySelectorAll('.wallet-color-btn').forEach(btn => {
         btn.classList.toggle('ring-2', btn.dataset.walletColor === selectedWalletColor);
@@ -1499,7 +1586,7 @@
           <div class="w-10 h-10 rounded-full ${col.bg} flex items-center justify-center text-lg shrink-0">${icon}</div>
           <div class="flex-1 min-w-0">
             <p class="font-semibold text-sm truncate">${w.name}${w.archived ? ' · 已封存' : ''}</p>
-            <p class="text-xs text-ios-gray">${WALLET_TYPE_LABELS[w.type] || '其他'} · 餘額 ${formatMoney(bal)}</p>
+            <p class="text-xs text-ios-gray">${WALLET_TYPE_LABELS[w.type] || '其他'} · ${getWalletCurrency(w)} · 餘額 ${formatMoney(bal, getWalletCurrency(w))}</p>
           </div>
           <button data-edit-wallet="${w.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-blue active:scale-95 transition-transform" aria-label="編輯">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -1535,9 +1622,9 @@
           <div class="w-10 h-10 rounded-full ${col.bg} flex items-center justify-center text-lg shrink-0">${icon}</div>
           <div class="flex-1 min-w-0">
             <p class="font-semibold text-sm truncate">${w.name}</p>
-            <p class="text-[10px] text-ios-gray">${WALLET_TYPE_LABELS[w.type] || '其他'}${w.includeInTotal === false ? ' · 不計入總資產' : ''}</p>
+            <p class="text-[10px] text-ios-gray">${WALLET_TYPE_LABELS[w.type] || '其他'} · ${getWalletCurrency(w)}${w.includeInTotal === false ? ' · 不計入總資產' : ''}</p>
           </div>
-          <p class="font-bold text-sm ${bal < 0 ? 'text-ios-red' : 'text-ios-blue'} shrink-0">${formatMoney(bal)}</p>
+          <p class="font-bold text-sm ${bal < 0 ? 'text-ios-red' : 'text-ios-blue'} shrink-0">${formatMoney(bal, getWalletCurrency(w))}</p>
         </div>`;
       }).join('');
     }
@@ -1547,7 +1634,14 @@
       if (!sel) return;
       const active = (db.finance.wallets || []).filter(w => !w.archived);
       sel.innerHTML = '<option value="">不指定帳戶</option>' +
-        active.map(w => `<option value="${w.id}">${WALLET_TYPE_ICONS[w.type] || '💰'} ${w.name}</option>`).join('');
+        active.map(w => `<option value="${w.id}">${WALLET_TYPE_ICONS[w.type] || '💰'} ${w.name} (${getWalletCurrency(w)})</option>`).join('');
+    }
+
+    function updateFinAmountCurrencyHint() {
+      const hint = document.getElementById('finAmountCurrency');
+      if (!hint) return;
+      const walletId = document.getElementById('finWalletId')?.value;
+      hint.textContent = walletId ? getWalletCurrency(getWalletById(walletId)) : DEFAULT_CURRENCY;
     }
 
     function parseDateAtNoon(dateStr) {
@@ -1786,15 +1880,15 @@
         showToast('沒有可匯出的紀錄', true);
         return;
       }
-      const headers = ['日期', '類型', '分類', '金額', '備註', '載具', '發票號碼'];
+      const headers = ['日期', '類型', '帳戶', '幣別', '分類', '金額', '備註'];
       const rows = [headers, ...records.map(r => [
         r.date,
         r.type === 'income' ? '收入' : '支出',
+        r.walletId ? (getWalletById(r.walletId)?.name || '') : '',
+        getRecordCurrency(r),
         r.category,
         r.amount,
-        r.memo || '',
-        r.carrierUsed ? '是' : '否',
-        r.invoiceNumber || ''
+        r.memo || ''
       ])];
       const suffix = scope === 'month' ? `${currentYear}-${pad2(currentMonth + 1)}` : '全部';
       downloadCsv(`vibe記帳_${suffix}_${todayStr()}.csv`, rows);
@@ -1816,10 +1910,6 @@
 
     function uid() {
       return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-    }
-
-    function formatMoney(n) {
-      return '$' + Number(n).toLocaleString('zh-TW', { maximumFractionDigits: 0 });
     }
 
     function pad2(n) { return String(n).padStart(2, '0'); }
@@ -2800,7 +2890,7 @@
 
     function getFinanceDayExpense(dateStr) {
       return (db.finance.records || [])
-        .filter(r => r.date === dateStr && r.type === 'expense')
+        .filter(r => r.date === dateStr && r.type === 'expense' && getRecordCurrency(r) === DEFAULT_CURRENCY)
         .reduce((s, r) => s + (r.amount || 0), 0);
     }
 
@@ -2854,7 +2944,7 @@
         html += `
           <button type="button" data-fin-day="${dateStr}" class="fin-cal-cell diet-cal-cell rounded-lg p-1 text-center active:scale-95 transition-transform ${hasData ? 'has-expense' : 'bg-ios-bg/40'} ${isToday ? 'is-today' : ''} ${isSelected ? 'is-selected' : ''}">
             <span class="block text-[11px] font-semibold">${day}</span>
-            ${expense > 0 ? `<span class="block text-[9px] text-ios-red font-bold leading-tight">${formatMoney(expense).replace('$', '')}</span>` : '<span class="block text-[9px] text-transparent">·</span>'}
+            ${expense > 0 ? `<span class="block text-[9px] text-ios-red font-bold leading-tight">${Math.round(expense).toLocaleString('zh-TW')}</span>` : '<span class="block text-[9px] text-transparent">·</span>'}
           </button>
         `;
       }
@@ -2892,7 +2982,7 @@
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between gap-2">
               <span class="font-semibold text-sm truncate">${r.memo || r.category}</span>
-              <span class="font-bold text-sm shrink-0 ${r.type === 'income' ? 'text-ios-green' : 'text-ios-red'}">${r.type === 'income' ? '+' : '-'}${formatMoney(r.amount)}</span>
+              <span class="font-bold text-sm shrink-0 ${r.type === 'income' ? 'text-ios-green' : 'text-ios-red'}">${r.type === 'income' ? '+' : '-'}${formatMoney(r.amount, getRecordCurrency(r))}</span>
             </div>
             ${walletBadge ? `<div class="mt-1">${walletBadge}</div>` : ''}
           </div>
@@ -2917,19 +3007,28 @@
       renderSubscriptions();
       renderWalletCards();
 
-      const netWorth = getTotalNetWorth();
-      document.getElementById('totalNetWorth').textContent = formatMoney(netWorth);
+      const byCurrency = getNetWorthByCurrency();
+      document.getElementById('totalNetWorth').textContent = formatMoney(byCurrency[DEFAULT_CURRENCY] || 0, DEFAULT_CURRENCY);
+      const fxEl = document.getElementById('totalNetWorthFx');
+      if (fxEl) {
+        const others = Object.keys(byCurrency)
+          .filter(c => c !== DEFAULT_CURRENCY && Math.abs(byCurrency[c]) > 0.0001)
+          .map(c => formatMoney(byCurrency[c], c));
+        fxEl.textContent = others.length ? others.join(' · ') : '';
+        fxEl.classList.toggle('hidden', !others.length);
+      }
 
       const records = getMonthRecords();
       let income = 0, expense = 0;
       records.forEach(r => {
+        if (getRecordCurrency(r) !== DEFAULT_CURRENCY) return;
         if (r.type === 'income') income += r.amount;
         else expense += r.amount;
       });
-      document.getElementById('totalIncome').textContent = formatMoney(income);
-      document.getElementById('totalExpense').textContent = formatMoney(expense);
+      document.getElementById('totalIncome').textContent = formatMoney(income, DEFAULT_CURRENCY);
+      document.getElementById('totalExpense').textContent = formatMoney(expense, DEFAULT_CURRENCY);
       const surplus = income - expense;
-      document.getElementById('totalSurplus').textContent = (surplus >= 0 ? '' : '-') + formatMoney(Math.abs(surplus));
+      document.getElementById('totalSurplus').textContent = (surplus >= 0 ? '' : '-') + formatMoney(Math.abs(surplus), DEFAULT_CURRENCY);
 
       renderFinanceRecordList();
     }
@@ -3772,6 +3871,7 @@
         renderFinance();
       });
 
+      document.getElementById('finWalletId').addEventListener('change', updateFinAmountCurrencyHint);
       document.getElementById('btnAddIncome').addEventListener('click', () => openFinanceModal('income'));
       document.getElementById('btnAddExpense').addEventListener('click', () => openFinanceModal('expense'));
       function openWalletsModal() {
@@ -3819,6 +3919,7 @@
         const name = document.getElementById('walletName').value.trim();
         if (!name) { showToast('請輸入錢包名稱', true); return; }
         const type = document.getElementById('walletType').value;
+        const currency = normalizeCurrency(document.getElementById('walletCurrency').value);
         const openingBalance = parseFloat(document.getElementById('walletOpeningBalance').value) || 0;
         const includeInTotal = document.getElementById('walletIncludeInTotal').checked;
         const color = selectedWalletColor;
@@ -3826,9 +3927,9 @@
           ensureFinanceSchema();
           if (editingWalletId) {
             const w = db.finance.wallets.find(x => x.id === editingWalletId);
-            if (w) Object.assign(w, { name, type, openingBalance, includeInTotal, color });
+            if (w) Object.assign(w, { name, type, currency, openingBalance, includeInTotal, color });
           } else {
-            db.finance.wallets.push({ id: uid(), name, type, openingBalance, includeInTotal, color, archived: false });
+            db.finance.wallets.push({ id: uid(), name, type, currency, openingBalance, includeInTotal, color, archived: false });
           }
         });
         const isEdit = !!editingWalletId;
@@ -4365,6 +4466,7 @@
       populateWalletSelect();
       const sel = document.getElementById('finWalletId');
       if (sel) sel.value = record?.walletId || getDefaultWalletId() || '';
+      updateFinAmountCurrencyHint();
       openModal('modalFinance');
     }
 

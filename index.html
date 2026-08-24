@@ -7,6 +7,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Vibe">
   <meta name="theme-color" content="#F2F2F7" id="metaThemeColor">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <link rel="icon" type="image/png" sizes="512x512" href="icons/green-moon.png" id="appIcon">
   <link rel="apple-touch-icon" href="icons/green-moon.png" id="appTouchIcon">
   <link rel="manifest" href="manifest.json">
@@ -207,7 +210,8 @@
           <p class="text-sm font-semibold">我的錢包</p>
           <button type="button" id="btnAddWalletQuick" class="text-xs text-ios-blue font-semibold active:scale-95 transition-transform">＋ 新增</button>
         </div>
-        <div id="walletCardList" class="px-3 pb-3 space-y-2">
+        <div class="px-3 pb-3">
+          <div id="walletCardList" class="space-y-2"></div>
           <p id="walletCardEmpty" class="text-center text-ios-gray text-sm py-4">尚無錢包，點右上方新增</p>
         </div>
       </div>
@@ -1084,7 +1088,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.4.7';
+    const APP_VERSION = '1.4.8';
     const DEFAULT_APP_ICON = 'green-moon';
     const ICON_THEMES = {
       'blue-v': '#007AFF',
@@ -1513,14 +1517,14 @@
       const empty = document.getElementById('walletCardEmpty');
       const hint = document.getElementById('finToolsWalletHint');
       if (!list) return;
-      const active = db.finance.wallets.filter(w => !w.archived);
+      const active = (db.finance.wallets || []).filter(w => !w.archived);
       if (!active.length) {
         list.innerHTML = '';
-        empty.classList.remove('hidden');
+        if (empty) empty.classList.remove('hidden');
         if (hint) hint.textContent = '尚無錢包，點此新增';
         return;
       }
-      empty.classList.add('hidden');
+      if (empty) empty.classList.add('hidden');
       if (hint) hint.textContent = `共 ${active.length} 個帳戶`;
       list.innerHTML = active.map(w => {
         const col = WALLET_COLORS[w.color || 'blue'] || WALLET_COLORS.blue;
@@ -2008,12 +2012,32 @@
     }
 
     let pendingAppVersion = null;
+    const APPLIED_VERSION_KEY = 'vibe_applied_app_version';
 
-    function applyAppUpdate(version) {
+    async function applyAppUpdate(version) {
+      const target = String(version || pendingAppVersion || Date.now());
+      try { localStorage.setItem(APPLIED_VERSION_KEY, target); } catch { /* ignore */ }
+      try {
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(r => r.unregister()));
+        }
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        await fetch('./index.html?v=' + encodeURIComponent(target) + '&_t=' + Date.now(), { cache: 'reload' });
+        await fetch('./version.json?_=' + Date.now(), { cache: 'reload' });
+      } catch { /* ignore */ }
       const url = new URL(location.href);
-      url.searchParams.set('v', version || pendingAppVersion || Date.now());
+      url.searchParams.set('v', target);
       url.searchParams.set('_t', String(Date.now()));
       location.replace(url.toString());
+    }
+
+    function hideUpdateBanner() {
+      const banner = document.getElementById('updateBanner');
+      if (banner) banner.classList.remove('show');
     }
 
     function showUpdateBanner(version) {
@@ -2024,7 +2048,7 @@
       const btn = document.getElementById('btnApplyUpdate');
       if (btn && !btn.dataset.bound) {
         btn.dataset.bound = '1';
-        btn.addEventListener('click', () => applyAppUpdate(version));
+        btn.addEventListener('click', () => applyAppUpdate(pendingAppVersion));
       }
     }
 
@@ -2054,7 +2078,13 @@
       const data = await fetchVersionConfig();
       if (!data) return;
       if (data.icon) applyAppIcon(data.icon, data.version);
-      if (data.version && data.version !== APP_VERSION) showUpdateBanner(data.version);
+      const remote = String(data.version || '').trim();
+      if (!remote || remote === APP_VERSION) {
+        hideUpdateBanner();
+        try { localStorage.setItem(APPLIED_VERSION_KEY, APP_VERSION); } catch { /* ignore */ }
+        return;
+      }
+      showUpdateBanner(remote);
     }
 
     function getTheme() {
@@ -3801,11 +3831,11 @@
             db.finance.wallets.push({ id: uid(), name, type, openingBalance, includeInTotal, color, archived: false });
           }
         });
+        const isEdit = !!editingWalletId;
         closeModal('modalWalletEdit');
+        renderFinance();
         renderWalletManageList();
-        renderWalletCards();
-        document.getElementById('totalNetWorth').textContent = formatMoney(getTotalNetWorth());
-        showToast(ok ? (editingWalletId ? '錢包已更新' : `已新增錢包：${name}`) : '已儲存（本機）', !ok);
+        showToast(ok ? (isEdit ? '錢包已更新' : `已新增錢包：${name}`) : '已儲存（本機）', !ok);
         editingWalletId = null;
       });
 
@@ -4444,6 +4474,9 @@
       renderAll();
       checkSubscriptionReminders();
       checkForAppUpdate();
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js?v=' + encodeURIComponent(APP_VERSION)).catch(() => {});
+      }
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
           if (purgeExpiredDietImages()) {

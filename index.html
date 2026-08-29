@@ -402,6 +402,19 @@
             <span class="block text-[10px] text-ios-gray">大餐</span>
           </button>
         </div>
+        <div class="mt-4 pt-4 border-t border-gray-100">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-xs text-ios-gray">快速記三大營養素</p>
+            <button type="button" id="btnOpenMacroModal" class="text-xs text-ios-blue font-semibold active:scale-95 transition-transform">詳細編輯</button>
+          </div>
+          <div class="grid grid-cols-4 gap-2">
+            <input id="quickMacroCarbs" type="number" inputmode="numeric" enterkeyhint="next" placeholder="碳 g" class="bg-ios-bg rounded-xl px-3 py-2.5 text-sm text-center border-0 outline-none focus:ring-2 focus:ring-blue-300/50">
+            <input id="quickMacroProtein" type="number" inputmode="numeric" enterkeyhint="next" placeholder="蛋 g" class="bg-ios-bg rounded-xl px-3 py-2.5 text-sm text-center border-0 outline-none focus:ring-2 focus:ring-green-300/50">
+            <input id="quickMacroFat" type="number" inputmode="numeric" enterkeyhint="done" placeholder="脂 g" class="bg-ios-bg rounded-xl px-3 py-2.5 text-sm text-center border-0 outline-none focus:ring-2 focus:ring-yellow-300/50">
+            <button type="button" id="btnQuickMacroAdd" class="bg-ios-blue text-white rounded-xl text-sm font-semibold active:scale-95 transition-transform">加入</button>
+          </div>
+          <p class="text-[10px] text-ios-gray mt-1.5">熱量自動計算 · 名稱可留空</p>
+        </div>
       </div>
 
       <div class="flex gap-3">
@@ -536,10 +549,10 @@
         <div id="trainSetsRow" class="hidden">
           <p class="text-xs text-ios-gray mb-2">組數（<span id="trainSelectedPartLabel">—</span>）</p>
           <div class="grid grid-cols-4 gap-2">
-            <button type="button" data-train-sets="8" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">8</button>
+            <button type="button" data-train-sets="3" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">3</button>
+            <button type="button" data-train-sets="6" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">6</button>
+            <button type="button" data-train-sets="9" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">9</button>
             <button type="button" data-train-sets="12" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">12</button>
-            <button type="button" data-train-sets="16" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">16</button>
-            <button type="button" data-train-sets="20" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">20</button>
           </div>
         </div>
       </div>
@@ -644,7 +657,7 @@
       <div class="space-y-3">
         <div>
           <label class="text-xs text-ios-gray">金額 <span id="finAmountCurrency" class="text-ios-blue font-semibold">TWD</span></label>
-          <input id="finAmount" type="number" inputmode="decimal" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          <input id="finAmount" type="number" inputmode="decimal" enterkeyhint="done" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
         </div>
         <div>
           <label class="text-xs text-ios-gray">帳戶 / 錢包</label>
@@ -877,7 +890,7 @@
         </div>
         <div>
           <label class="text-xs text-ios-gray">熱量 (kcal)</label>
-          <input id="dietCalories" type="number" inputmode="numeric" placeholder="不知道可留空，系統會估算" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+          <input id="dietCalories" type="number" inputmode="numeric" enterkeyhint="next" placeholder="不知道可留空，系統會估算" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
           <div class="flex gap-2 mt-2">
             <button type="button" data-fill-cal="400" class="flex-1 text-xs bg-ios-bg rounded-lg py-1.5 text-ios-blue font-medium active:scale-95 transition-transform">~400</button>
             <button type="button" data-fill-cal="600" class="flex-1 text-xs bg-ios-bg rounded-lg py-1.5 text-ios-blue font-medium active:scale-95 transition-transform">~600</button>
@@ -888,15 +901,15 @@
         <div id="dietDetailFields" class="hidden grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs text-ios-gray">碳水 (g)</label>
-            <input id="dietCarbs" type="number" inputmode="decimal" placeholder="自動估算" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+            <input id="dietCarbs" type="number" inputmode="numeric" enterkeyhint="next" placeholder="自動估算" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
           </div>
           <div>
             <label class="text-xs text-ios-gray">蛋白質 (g)</label>
-            <input id="dietProtein" type="number" inputmode="decimal" placeholder="自動估算" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+            <input id="dietProtein" type="number" inputmode="numeric" enterkeyhint="next" placeholder="自動估算" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
           </div>
           <div class="col-span-2">
             <label class="text-xs text-ios-gray">脂肪 (g)</label>
-            <input id="dietFat" type="number" inputmode="decimal" placeholder="自動估算" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+            <input id="dietFat" type="number" inputmode="numeric" enterkeyhint="done" placeholder="自動估算" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
           </div>
         </div>
         <p class="text-[11px] text-ios-gray">只填名稱也 OK，營養素會依熱量自動估算</p>
@@ -1107,7 +1120,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.4.9';
+    const APP_VERSION = '1.5.0';
     const DEFAULT_APP_ICON = 'green-moon';
     const ICON_THEMES = {
       'blue-v': '#007AFF',
@@ -1943,6 +1956,21 @@
     function closeModal(id) {
       document.getElementById(id).classList.add('hidden');
       document.body.style.overflow = '';
+    }
+
+    function focusInputSoon(id) {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const el = document.getElementById(id);
+          if (!el || el.disabled) return;
+          try {
+            el.focus({ preventScroll: true });
+          } catch {
+            el.focus();
+          }
+          if (el.value && typeof el.select === 'function') el.select();
+        }, 300);
+      });
     }
 
     function getSettings() {
@@ -3162,6 +3190,28 @@
       showToast(ok ? `已加入 ${name}` : `已加入 ${name}（本機）`, !ok);
     }
 
+    async function quickAddMacroFood(carbs, protein, fat, name) {
+      const nutrients = resolveFoodNutrients({ carbs, protein, fat });
+      if (!(nutrients.carbs || nutrients.protein || nutrients.fat)) {
+        showToast('請至少填一項營養素', true);
+        return false;
+      }
+      const label = (name || '').trim() || `營養素 ${Math.round(nutrients.carbs)}C/${Math.round(nutrients.protein)}P/${Math.round(nutrients.fat)}F`;
+      const ok = await mutateAndSync(() => {
+        db.diet.records.push({
+          id: uid(),
+          date: dietSelectedDate || todayStr(),
+          name: label,
+          ...nutrients,
+          image: null,
+          quickAdd: true,
+          macroOnly: true
+        });
+      });
+      showToast(ok ? `已加入 ${label}` : `已加入（本機）`, !ok);
+      return ok;
+    }
+
     function renderFoodPicker() {
       const query = document.getElementById('foodSearch')?.value || '';
       const pills = document.getElementById('foodCategoryPills');
@@ -4090,6 +4140,33 @@
         openDietModal();
       });
 
+      document.getElementById('btnOpenMacroModal').addEventListener('click', () => {
+        pendingDietImage = null;
+        openDietModal(null, { macroMode: true });
+      });
+
+      document.getElementById('btnQuickMacroAdd').addEventListener('click', async () => {
+        const carbs = document.getElementById('quickMacroCarbs').value;
+        const protein = document.getElementById('quickMacroProtein').value;
+        const fat = document.getElementById('quickMacroFat').value;
+        const ok = await quickAddMacroFood(carbs, protein, fat);
+        if (ok) {
+          document.getElementById('quickMacroCarbs').value = '';
+          document.getElementById('quickMacroProtein').value = '';
+          document.getElementById('quickMacroFat').value = '';
+        }
+      });
+
+      document.getElementById('quickMacroCarbs').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); focusInputSoon('quickMacroProtein'); }
+      });
+      document.getElementById('quickMacroProtein').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); focusInputSoon('quickMacroFat'); }
+      });
+      document.getElementById('quickMacroFat').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnQuickMacroAdd').click(); }
+      });
+
       document.querySelectorAll('[data-diet-goal]').forEach(btn => {
         btn.addEventListener('click', async () => {
           const mode = btn.dataset.dietGoal;
@@ -4240,6 +4317,7 @@
           document.getElementById('dietPreview').src = pendingDietImage;
           document.getElementById('dietModalTitle').textContent = '自訂飲食紀錄';
           openModal('modalDiet');
+          focusInputSoon('dietCalories');
         } catch (err) {
           showToast(err.message || '照片處理失敗', true);
         }
@@ -4253,10 +4331,15 @@
           protein: document.getElementById('dietProtein').value,
           fat: document.getElementById('dietFat').value
         });
-        if (!name && !pendingDietImage && nutrients.calories <= 0) {
-          showToast('請輸入名稱或熱量', true);
+        if (!name && !pendingDietImage && nutrients.calories <= 0 &&
+            !(nutrients.carbs || nutrients.protein || nutrients.fat)) {
+          showToast('請輸入名稱、熱量或營養素', true);
           return;
         }
+        const hasMacros = !!(nutrients.carbs || nutrients.protein || nutrients.fat);
+        const displayName = name || (hasMacros
+          ? `營養素 ${Math.round(nutrients.carbs)}C/${Math.round(nutrients.protein)}P/${Math.round(nutrients.fat)}F`
+          : '飲食紀錄');
         const isEdit = !!editingDietId;
         const saveDate = dietSelectedDate || todayStr();
         closeModal('modalDiet');
@@ -4270,7 +4353,7 @@
                 ? (image !== null ? image : rec.image)
                 : null;
               Object.assign(rec, {
-                name: name || '飲食紀錄',
+                name: displayName,
                 date: saveDate,
                 ...nutrients,
                 image: nextImage
@@ -4281,7 +4364,7 @@
             db.diet.records.push({
               id: uid(),
               date: saveDate,
-              name: name || '飲食紀錄',
+              name: displayName,
               ...nutrients,
               image: isPhotoStorageEnabled() ? (image || null) : null
             });
@@ -4468,11 +4551,16 @@
       if (sel) sel.value = record?.walletId || getDefaultWalletId() || '';
       updateFinAmountCurrencyHint();
       openModal('modalFinance');
+      focusInputSoon('finAmount');
     }
 
-    function openDietModal(record) {
+    function openDietModal(record, options) {
+      const opts = options || {};
       editingDietId = record ? record.id : null;
-      document.getElementById('dietModalTitle').textContent = record ? '編輯飲食紀錄' : '自訂飲食紀錄';
+      const macroMode = !!opts.macroMode;
+      document.getElementById('dietModalTitle').textContent = record
+        ? '編輯飲食紀錄'
+        : (macroMode ? '快速記營養素' : '自訂飲食紀錄');
       if (record) {
         pendingDietImage = null;
         document.getElementById('dietName').value = record.name || '';
@@ -4492,10 +4580,20 @@
           document.getElementById('dietPreviewWrap').classList.add('hidden');
           document.getElementById('dietPreview').src = '';
         }
+        openModal('modalDiet');
+        focusInputSoon('dietCalories');
       } else {
         resetDietForm();
+        if (macroMode) {
+          document.getElementById('dietDetailFields').classList.remove('hidden');
+          document.getElementById('btnToggleDietDetail').textContent = '▾ 收合詳細營養素（選填）';
+          document.getElementById('dietName').placeholder = '選填，可留空';
+        } else {
+          document.getElementById('dietName').placeholder = '例如：公司便當、路邊滷味';
+        }
+        openModal('modalDiet');
+        focusInputSoon(macroMode ? 'dietCarbs' : 'dietCalories');
       }
-      openModal('modalDiet');
     }
 
     function openTrainModal(record) {

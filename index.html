@@ -526,6 +526,47 @@
     <!-- ===== TRAINING TAB ===== -->
     <section id="tabTrain" class="tab-panel hidden space-y-4">
 
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-base font-bold">今日訓練</h2>
+          <div class="theme-seg w-28" id="trainUnitToggle">
+            <button type="button" data-train-unit="kg" class="theme-seg-btn active active:scale-95 transition-transform">kg</button>
+            <button type="button" data-train-unit="lb" class="theme-seg-btn active:scale-95 transition-transform">lb</button>
+          </div>
+        </div>
+        <p id="trainSuggestHint" class="text-xs text-ios-gray mb-3"></p>
+        <div class="mb-3">
+          <label class="text-xs text-ios-gray">日期</label>
+          <input id="trainDate" type="date" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div id="trainPplGrid" class="grid grid-cols-3 gap-2">
+          <button type="button" data-train-ppl="push" class="train-ppl-btn rounded-2xl py-3 text-sm font-bold bg-ios-bg text-ios-blue border-2 border-transparent active:scale-95 transition-transform">Push</button>
+          <button type="button" data-train-ppl="pull" class="train-ppl-btn rounded-2xl py-3 text-sm font-bold bg-ios-bg text-ios-blue border-2 border-transparent active:scale-95 transition-transform">Pull</button>
+          <button type="button" data-train-ppl="legs" class="train-ppl-btn rounded-2xl py-3 text-sm font-bold bg-ios-bg text-ios-blue border-2 border-transparent active:scale-95 transition-transform">Legs</button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <h2 class="text-base font-bold mb-1">訓練紀錄</h2>
+        <p id="trainSessionTitle" class="text-xs text-ios-gray mb-3"></p>
+        <div id="trainSessionLog" class="space-y-2"></div>
+        <p id="trainSessionEmpty" class="text-center text-ios-gray text-sm py-6 hidden">尚無動作，從下方模板加入</p>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <h2 class="text-base font-bold mb-3">動作模板</h2>
+        <div id="trainTemplateChips" class="flex flex-wrap gap-2"></div>
+        <p class="text-xs text-ios-gray mt-4 mb-2">Finisher</p>
+        <div id="trainFinisherChips" class="flex flex-wrap gap-2"></div>
+        <button type="button" id="btnTrainCustomExercise" class="w-full mt-4 bg-ios-bg text-ios-blue font-semibold py-3 rounded-2xl active:scale-95 transition-transform">＋ 自訂動作</button>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-sm p-5">
+        <h2 class="text-base font-bold mb-1">部位恢復狀態</h2>
+        <p class="text-xs text-ios-gray mb-4">僅計工作組，依上次訓練量估算</p>
+        <div id="recoveryGrid" class="grid grid-cols-3 gap-2"></div>
+      </div>
+
       <div class="flex items-center justify-between bg-white rounded-2xl shadow-sm px-4 py-3">
         <button id="btnPrevTrainMonth" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
           <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
@@ -534,27 +575,6 @@
         <button id="btnNextTrainMonth" class="w-9 h-9 flex items-center justify-center rounded-full bg-ios-bg active:scale-95 transition-transform">
           <svg class="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
         </button>
-      </div>
-
-      <div class="bg-white rounded-3xl shadow-sm p-5">
-        <h2 class="text-base font-bold mb-1">部位恢復狀態</h2>
-        <p class="text-xs text-ios-gray mb-4">依上次訓練量估算，避免連續刺激同部位</p>
-        <div id="recoveryGrid" class="grid grid-cols-3 gap-2"></div>
-      </div>
-
-      <div class="bg-white rounded-3xl shadow-sm p-5">
-        <h2 class="text-base font-bold mb-3">快速紀錄訓練</h2>
-        <p class="text-xs text-ios-gray mb-3">選部位 → 選組數</p>
-        <div id="trainPartGrid" class="grid grid-cols-3 gap-2 mb-4"></div>
-        <div id="trainSetsRow" class="hidden">
-          <p class="text-xs text-ios-gray mb-2">組數（<span id="trainSelectedPartLabel">—</span>）</p>
-          <div class="grid grid-cols-4 gap-2">
-            <button type="button" data-train-sets="3" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">3</button>
-            <button type="button" data-train-sets="6" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">6</button>
-            <button type="button" data-train-sets="9" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">9</button>
-            <button type="button" data-train-sets="12" class="train-set-btn bg-ios-bg rounded-xl py-3 text-sm font-bold text-ios-blue active:scale-95 transition-transform">12</button>
-          </div>
-        </div>
       </div>
 
       <div class="bg-white rounded-3xl shadow-sm p-5">
@@ -1085,26 +1105,48 @@
   <!-- Training Edit Modal -->
   <div id="modalTrain" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black/40" data-close="modalTrain"></div>
-    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom">
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 safe-bottom max-h-[90vh] overflow-y-auto">
       <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5"></div>
-      <h2 id="trainModalTitle" class="text-lg font-bold mb-4">編輯訓練紀錄</h2>
+      <h2 id="trainModalTitle" class="text-lg font-bold mb-4">新增動作</h2>
       <div class="space-y-3">
         <div>
+          <label class="text-xs text-ios-gray">動作名稱</label>
+          <input id="trainEditName" type="text" placeholder="例如：史密斯平推" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">重量模式</label>
+          <div id="trainWeightModeRow" class="grid grid-cols-3 gap-2 mt-1">
+            <button type="button" data-weight-mode="normal" class="train-weight-mode-btn bg-ios-bg rounded-xl py-2.5 text-xs font-semibold text-ios-blue border-2 border-transparent active:scale-95 transition-transform">一般</button>
+            <button type="button" data-weight-mode="assist" class="train-weight-mode-btn bg-ios-bg rounded-xl py-2.5 text-xs font-semibold text-ios-blue border-2 border-transparent active:scale-95 transition-transform">輔助 (BW−)</button>
+            <button type="button" data-weight-mode="added" class="train-weight-mode-btn bg-ios-bg rounded-xl py-2.5 text-xs font-semibold text-ios-blue border-2 border-transparent active:scale-95 transition-transform">加負 (BW+)</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="text-xs text-ios-gray">重量</label>
+            <input id="trainEditWeight" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30 text-center">
+          </div>
+          <div>
+            <label class="text-xs text-ios-gray">組數</label>
+            <input id="trainEditSets" type="number" inputmode="numeric" min="1" placeholder="3" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30 text-center">
+          </div>
+          <div>
+            <label class="text-xs text-ios-gray">次數</label>
+            <input id="trainEditReps" type="number" inputmode="numeric" min="1" placeholder="10" class="w-full mt-1 bg-ios-bg rounded-xl px-3 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30 text-center">
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-ios-gray">組別類型</label>
+          <div id="trainSetTypeRow" class="grid grid-cols-2 gap-2 mt-1">
+            <button type="button" data-set-type="working" class="train-set-type-btn bg-ios-bg rounded-xl py-2.5 text-xs font-semibold text-ios-blue border-2 border-transparent active:scale-95 transition-transform">工作組</button>
+            <button type="button" data-set-type="warmup" class="train-set-type-btn bg-ios-bg rounded-xl py-2.5 text-xs font-semibold text-ios-blue border-2 border-transparent active:scale-95 transition-transform">熱身</button>
+          </div>
+        </div>
+        <div id="trainEditPartWrap">
           <label class="text-xs text-ios-gray">部位</label>
           <select id="trainEditPart" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30"></select>
         </div>
-        <div>
-          <label class="text-xs text-ios-gray">組數</label>
-          <input id="trainEditSets" type="number" inputmode="numeric" min="1" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
-        </div>
-        <div>
-          <label class="text-xs text-ios-gray">日期</label>
-          <input id="trainEditDate" type="date" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
-        </div>
-        <div>
-          <label class="text-xs text-ios-gray">時間</label>
-          <input id="trainEditTime" type="time" class="w-full mt-1 bg-ios-bg rounded-xl px-4 py-3 border-0 outline-none focus:ring-2 focus:ring-ios-blue/30">
-        </div>
+        <button type="button" id="trainLastHint" class="hidden w-full text-left bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-xs text-ios-blue active:scale-95 transition-transform"></button>
       </div>
       <button id="btnSaveTrain" class="w-full mt-5 bg-ios-blue text-white font-semibold py-3.5 rounded-2xl active:scale-95 transition-transform">儲存</button>
     </div>
@@ -1120,7 +1162,7 @@
     'use strict';
 
     const DB_PATH = 'vibe_tracker_db.json';
-    const APP_VERSION = '1.5.0';
+    const APP_VERSION = '1.6.0';
     const DEFAULT_APP_ICON = 'green-moon';
     const ICON_THEMES = {
       'blue-v': '#007AFF',
@@ -1197,6 +1239,38 @@
       { id: 'core', label: '核心', recoveryH: 24, color: 'bg-teal-100 text-teal-600' },
       { id: 'calves', label: '小腿', recoveryH: 24, color: 'bg-gray-100 text-gray-600' }
     ];
+    const PPL_ORDER = ['push', 'pull', 'legs'];
+    const PPL_LABELS = { push: 'Push', pull: 'Pull', legs: 'Legs' };
+    const PPL_TEMPLATES = {
+      push: [
+        { name: '史密斯/器械平推', part: 'chest' },
+        { name: '史密斯/器械上斜', part: 'chest' },
+        { name: '史密斯/器械肩推', part: 'shoulders' },
+        { name: '器械/Cable/Dip下胸', part: 'chest' },
+        { name: '三頭下壓', part: 'triceps' },
+        { name: '過頭三頭', part: 'triceps' }
+      ],
+      pull: [
+        { name: '槓鈴划船', part: 'back', optional: true },
+        { name: '引體/滑輪下拉', part: 'back' },
+        { name: '水平划船', part: 'back' },
+        { name: '反手高位下拉', part: 'back' },
+        { name: '直臂下壓', part: 'back' },
+        { name: '二頭彎舉', part: 'biceps' },
+        { name: 'Cable/器械反向飛鳥', part: 'shoulders' }
+      ],
+      legs: [
+        { name: 'RDL', part: 'glutes' },
+        { name: '腿推/哈克分腿', part: 'legs' },
+        { name: '推屈伸', part: 'legs' },
+        { name: '腿後勾', part: 'legs' },
+        { name: '腿外展內收', part: 'glutes' }
+      ]
+    };
+    const TRAIN_FINISHERS = [
+      { name: '卷腹', part: 'core' },
+      { name: '有氧', part: '', cardio: true }
+    ];
     let activeFoodCategory = '全部';
     let dietSelectedDate = todayStr();
     let dietCalYear = new Date().getFullYear();
@@ -1239,10 +1313,15 @@
     let editingFinanceId = null;
     let editingDietId = null;
     let editingSleepId = null;
-    let editingTrainId = null;
+    let editingTrainSessionId = null;
     let trainYear = new Date().getFullYear();
     let trainMonth = new Date().getMonth();
-    let pendingTrainPart = null;
+    let trainSelectedDate = todayStr();
+    let trainSessionType = 'push';
+    let trainWeightMode = 'normal';
+    let trainSetType = 'working';
+    let pendingExerciseTemplate = null;
+    let modalTrainCardio = false;
 
     // ─── Utilities ───
 
@@ -1269,7 +1348,7 @@
           targetHours: DEFAULT_SLEEP_TARGET,
           records: []
         },
-        training: { records: [] },
+        training: { unit: 'kg', sessions: [] },
         calculator: { savedAt: null }
       };
     }
@@ -1378,6 +1457,18 @@
       if (!Array.isArray(db.diet.weeklySummaries)) db.diet.weeklySummaries = [];
       if (!Array.isArray(db.diet.monthlySummaries)) db.diet.monthlySummaries = [];
       if (!Array.isArray(db.diet.favoriteFoods)) db.diet.favoriteFoods = [];
+    }
+
+    function ensureTrainingSchema() {
+      let changed = false;
+      if (!db.training) { db.training = { unit: 'kg', sessions: [] }; changed = true; }
+      if (db.training.records) { delete db.training.records; changed = true; }
+      if (db.training.unit !== 'kg' && db.training.unit !== 'lb') { db.training.unit = 'kg'; changed = true; }
+      if (!Array.isArray(db.training.sessions)) { db.training.sessions = []; changed = true; }
+      db.training.sessions.forEach(s => {
+        if (!Array.isArray(s.exercises)) { s.exercises = []; changed = true; }
+      });
+      return changed;
     }
 
     function getFavoriteFoods() {
@@ -2522,11 +2613,29 @@
       return l || r || null;
     }
 
-    function mergeTrainingRecords(remote, local) {
+    function mergeTrainingExercises(remoteEx, localEx) {
       const byId = new Map();
-      [...(remote || []), ...(local || [])].forEach(r => {
-        if (!r?.id) return;
-        byId.set(r.id, r);
+      [...(remoteEx || []), ...(localEx || [])].forEach(ex => {
+        if (!ex?.id) return;
+        byId.set(ex.id, ex);
+      });
+      return Array.from(byId.values());
+    }
+
+    function mergeTrainingSessions(remote, local) {
+      const byId = new Map();
+      [...(remote || []), ...(local || [])].forEach(s => {
+        if (!s?.id) return;
+        const prev = byId.get(s.id);
+        if (!prev) {
+          byId.set(s.id, { ...s, exercises: [...(s.exercises || [])] });
+          return;
+        }
+        byId.set(s.id, {
+          ...prev,
+          ...s,
+          exercises: mergeTrainingExercises(prev.exercises, s.exercises)
+        });
       });
       return Array.from(byId.values()).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     }
@@ -2534,12 +2643,19 @@
     function mergeTrainingData(remoteTraining, localTraining) {
       const remote = remoteTraining || {};
       const local = localTraining || {};
-      const remoteRec = Array.isArray(remote.records) ? remote.records : [];
-      const localRec = Array.isArray(local.records) ? local.records : [];
-      return {
-        records: remoteRec.length && localRec.length ? mergeTrainingRecords(remoteRec, localRec)
-          : (localRec.length ? localRec : remoteRec)
-      };
+      const remoteSessions = Array.isArray(remote.sessions) ? remote.sessions : [];
+      const localSessions = Array.isArray(local.sessions) ? local.sessions : [];
+      const unit = (local.unit === 'lb' || local.unit === 'kg') ? local.unit
+        : ((remote.unit === 'lb' || remote.unit === 'kg') ? remote.unit : 'kg');
+      let sessions;
+      if (remoteSessions.length && localSessions.length) {
+        sessions = mergeTrainingSessions(remoteSessions, localSessions);
+      } else if (localSessions.length) {
+        sessions = localSessions;
+      } else {
+        sessions = remoteSessions;
+      }
+      return { unit, sessions };
     }
 
     function mergeSleepRecords(remote, local) {
@@ -2568,6 +2684,7 @@
     async function mutateAndSync(mutator) {
       mutator();
       ensureDietSchema();
+      ensureTrainingSchema();
       maintainDietArchives();
       purgeExpiredDietImages();
       saveLocalCache();
@@ -3693,11 +3810,68 @@
       return TRAINING_PARTS.find(p => p.id === partId) || { id: partId, label: partId, recoveryH: 48, color: 'bg-gray-100 text-gray-600' };
     }
 
-    function getMonthTrainingRecords() {
-      return (db.training?.records || []).filter(r => {
-        const d = new Date(r.date);
-        return d.getFullYear() === trainYear && d.getMonth() === trainMonth;
-      }).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
+    function getTrainUnit() {
+      ensureTrainingSchema();
+      return db.training.unit === 'lb' ? 'lb' : 'kg';
+    }
+
+    function getAllTrainingExercises() {
+      ensureTrainingSchema();
+      const all = [];
+      (db.training.sessions || []).forEach(s => {
+        (s.exercises || []).forEach(ex => {
+          all.push({
+            ...ex,
+            sessionDate: s.date,
+            sessionType: s.type,
+            sessionId: s.id
+          });
+        });
+      });
+      return all;
+    }
+
+    function getSessionForDate(date, type) {
+      ensureTrainingSchema();
+      return (db.training.sessions || []).find(s => s.date === date && s.type === type) || null;
+    }
+
+    function getOrCreateSession(date, type) {
+      ensureTrainingSchema();
+      let session = getSessionForDate(date, type);
+      if (!session) {
+        session = { id: uid(), date, type, exercises: [] };
+        db.training.sessions.push(session);
+      }
+      if (!Array.isArray(session.exercises)) session.exercises = [];
+      return session;
+    }
+
+    function getSuggestedPpl() {
+      ensureTrainingSchema();
+      const sessions = [...(db.training.sessions || [])].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      if (!sessions.length) return 'push';
+      const idx = PPL_ORDER.indexOf(sessions[0].type);
+      if (idx < 0) return 'push';
+      return PPL_ORDER[(idx + 1) % PPL_ORDER.length];
+    }
+
+    function formatTrainWeight(weight, weightMode, unit) {
+      const u = unit || getTrainUnit();
+      const w = typeof weight === 'number' ? weight : parseFloat(weight);
+      const n = isNaN(w) ? 0 : w;
+      if (weightMode === 'assist') return n ? `-${n}${u}` : 'BW';
+      if (weightMode === 'added') return n ? `+${n}${u}` : 'BW';
+      if (!n) return 'BW';
+      return `${n}${u}`;
+    }
+
+    function getLastExerciseLog(name) {
+      if (!name) return null;
+      const matches = getAllTrainingExercises()
+        .filter(ex => ex.name === name && ex.setType === 'working')
+        .sort((a, b) => (b.sessionDate || '').localeCompare(a.sessionDate || ''));
+      return matches[0] || null;
     }
 
     function calcRecoveryNeededH(sets, baseH) {
@@ -3710,58 +3884,196 @@
 
     function getPartRecoveryStatus(partId) {
       const part = getPartDef(partId);
-      const records = (db.training?.records || [])
-        .filter(r => r.part === partId)
-        .sort((a, b) => {
-          const da = (a.date || '') + (a.createdAt || '');
-          const db_ = (b.date || '') + (b.createdAt || '');
-          return db_.localeCompare(da);
-        });
-      if (!records.length) return { ready: true, label: '可訓練', sub: '尚無紀錄', hoursLeft: 0 };
-      const last = records[0];
-      const trainedAt = new Date((last.date || todayStr()) + 'T' + (last.time || '18:00') + ':00');
-      const needH = calcRecoveryNeededH(last.sets || 0, part.recoveryH);
+      const exercises = getAllTrainingExercises()
+        .filter(ex => ex.part === partId && ex.setType === 'working' && !ex.cardio);
+      if (!exercises.length) return { ready: true, label: '可訓練', sub: '尚無紀錄', hoursLeft: 0 };
+      const byDate = {};
+      exercises.forEach(ex => {
+        const d = ex.sessionDate || '';
+        byDate[d] = (byDate[d] || 0) + (ex.sets || 0);
+      });
+      const dates = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
+      const lastDate = dates[0];
+      const totalSets = byDate[lastDate];
+      const trainedAt = new Date(lastDate + 'T18:00:00');
+      const needH = calcRecoveryNeededH(totalSets, part.recoveryH);
       const recoverEnd = trainedAt.getTime() + needH * 3600000;
       const now = Date.now();
-      if (now >= recoverEnd) return { ready: true, label: '可訓練', sub: `已休息 ${Math.floor((now - recoverEnd) / 3600000)}h+`, hoursLeft: 0 };
+      if (now >= recoverEnd) {
+        return { ready: true, label: '可訓練', sub: `已休息 ${Math.floor((now - recoverEnd) / 3600000)}h+`, hoursLeft: 0 };
+      }
       const hoursLeft = Math.ceil((recoverEnd - now) / 3600000);
       return { ready: false, label: '恢復中', sub: `約 ${hoursLeft}h 後`, hoursLeft };
     }
 
     function getMonthSetsByPart() {
+      ensureTrainingSchema();
       const totals = {};
       TRAINING_PARTS.forEach(p => { totals[p.id] = 0; });
-      getMonthTrainingRecords().forEach(r => {
-        if (totals[r.part] !== undefined) totals[r.part] += r.sets || 0;
+      (db.training.sessions || []).forEach(s => {
+        const d = new Date(s.date + 'T12:00:00');
+        if (d.getFullYear() !== trainYear || d.getMonth() !== trainMonth) return;
+        (s.exercises || []).forEach(ex => {
+          if (ex.setType !== 'working' || ex.cardio) return;
+          if (totals[ex.part] !== undefined) totals[ex.part] += ex.sets || 0;
+        });
       });
       return totals;
     }
 
-    async function quickAddTraining(partId, sets) {
-      const part = getPartDef(partId);
-      const status = getPartRecoveryStatus(partId);
-      if (!status.ready) {
-        if (!confirm(`${part.label} 仍在恢復中（${status.sub}），確定要記錄訓練？`)) return;
-      }
-      const now = new Date();
-      const ok = await mutateAndSync(() => {
-        if (!db.training) db.training = { records: [] };
-        db.training.records.push({
-          id: uid(),
-          date: todayStr(),
-          time: pad2(now.getHours()) + ':' + pad2(now.getMinutes()),
-          part: partId,
-          sets,
-          createdAt: now.toISOString()
-        });
+    function getMonthSessions() {
+      ensureTrainingSchema();
+      return (db.training.sessions || []).filter(s => {
+        const d = new Date(s.date + 'T12:00:00');
+        return d.getFullYear() === trainYear && d.getMonth() === trainMonth;
+      }).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.type || '').localeCompare(a.type || ''));
+    }
+
+    function syncTrainUnitButtons() {
+      const unit = getTrainUnit();
+      document.querySelectorAll('#trainUnitToggle [data-train-unit]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.trainUnit === unit);
       });
-      pendingTrainPart = null;
-      document.getElementById('trainSetsRow').classList.add('hidden');
-      showToast(ok ? `${part.label} ${sets} 組已記錄` : '已存本機，同步失敗', !ok);
+    }
+
+    function syncPplButtons() {
+      document.querySelectorAll('#trainPplGrid [data-train-ppl]').forEach(btn => {
+        const active = btn.dataset.trainPpl === trainSessionType;
+        btn.classList.toggle('border-ios-blue', active);
+        btn.classList.toggle('bg-blue-50', active);
+        btn.classList.toggle('border-transparent', !active);
+        btn.classList.toggle('bg-ios-bg', !active);
+      });
+    }
+
+    function renderExerciseChips() {
+      const templates = PPL_TEMPLATES[trainSessionType] || [];
+      document.getElementById('trainTemplateChips').innerHTML = templates.map((t, i) => `
+        <button type="button" data-train-template="${i}" class="train-chip px-3 py-2 rounded-full bg-ios-bg text-xs font-semibold text-ios-blue active:scale-95 transition-transform">${t.name}${t.optional ? ' (選)' : ''}</button>
+      `).join('');
+      document.getElementById('trainFinisherChips').innerHTML = TRAIN_FINISHERS.map((f, i) => `
+        <button type="button" data-train-finisher="${i}" class="train-chip px-3 py-2 rounded-full bg-teal-50 text-xs font-semibold text-teal-700 border border-teal-100 active:scale-95 transition-transform">${f.name}</button>
+      `).join('');
+    }
+
+    function renderSessionLog() {
+      const session = getSessionForDate(trainSelectedDate, trainSessionType);
+      const log = document.getElementById('trainSessionLog');
+      const empty = document.getElementById('trainSessionEmpty');
+      const title = document.getElementById('trainSessionTitle');
+      title.textContent = `${trainSelectedDate} · ${PPL_LABELS[trainSessionType] || trainSessionType}`;
+      const exercises = session ? (session.exercises || []) : [];
+      if (!exercises.length) {
+        log.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      const unit = getTrainUnit();
+      log.innerHTML = exercises.map(ex => {
+        const part = ex.part ? getPartDef(ex.part) : null;
+        const typeBadge = ex.setType === 'warmup'
+          ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-600 font-semibold">熱身</span>'
+          : '<span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-600 font-semibold">工作</span>';
+        const cardioBadge = ex.cardio ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-semibold ml-1">有氧</span>' : '';
+        const partDot = part
+          ? `<span class="w-5 h-5 rounded-full ${part.color} flex items-center justify-center text-[9px] font-bold shrink-0">${part.label}</span>`
+          : '';
+        return `
+        <div class="bg-ios-bg rounded-2xl p-3 flex items-center gap-2">
+          ${partDot}
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1 flex-wrap">
+              <span class="font-semibold text-sm truncate">${ex.name || '—'}</span>
+              ${typeBadge}${cardioBadge}
+            </div>
+            <p class="text-xs text-ios-gray mt-0.5">${formatTrainWeight(ex.weight, ex.weightMode, unit)} · ${ex.sets || 0}×${ex.reps || 0}</p>
+          </div>
+          <button type="button" data-edit-exercise="${ex.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-blue active:scale-95 transition-transform" aria-label="編輯">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </button>
+          <button type="button" data-delete-exercise="${ex.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform" aria-label="刪除">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>`;
+      }).join('');
+    }
+
+    function syncWeightModeButtons() {
+      document.querySelectorAll('#trainWeightModeRow [data-weight-mode]').forEach(btn => {
+        const active = btn.dataset.weightMode === trainWeightMode;
+        btn.classList.toggle('border-ios-blue', active);
+        btn.classList.toggle('bg-blue-50', active);
+        btn.classList.toggle('border-transparent', !active);
+      });
+    }
+
+    function syncSetTypeButtons() {
+      document.querySelectorAll('#trainSetTypeRow [data-set-type]').forEach(btn => {
+        const active = btn.dataset.setType === trainSetType;
+        btn.classList.toggle('border-ios-blue', active);
+        btn.classList.toggle('bg-blue-50', active);
+        btn.classList.toggle('border-transparent', !active);
+      });
+    }
+
+    function openTrainExerciseModal(source, isEdit) {
+      editingTrainSessionId = (isEdit && source && source.id) ? source.id : null;
+      modalTrainCardio = !!(source && source.cardio);
+      const name = (source && source.name) ? source.name : '';
+      const part = (source && source.part) ? source.part : 'chest';
+      document.getElementById('trainModalTitle').textContent = editingTrainSessionId ? '編輯動作' : '新增動作';
+      document.getElementById('trainEditName').value = name;
+      if (isEdit && source) {
+        document.getElementById('trainEditWeight').value = (source.weight !== undefined && source.weight !== null) ? source.weight : '';
+        document.getElementById('trainEditSets').value = source.sets || '';
+        document.getElementById('trainEditReps').value = source.reps || '';
+        trainWeightMode = source.weightMode || 'normal';
+        trainSetType = source.setType || 'working';
+      } else {
+        document.getElementById('trainEditWeight').value = '';
+        document.getElementById('trainEditSets').value = '';
+        document.getElementById('trainEditReps').value = '';
+        trainWeightMode = 'normal';
+        trainSetType = 'working';
+      }
+      document.getElementById('trainEditPartWrap').classList.toggle('hidden', modalTrainCardio);
+      document.getElementById('trainEditPart').innerHTML = TRAINING_PARTS.map(p =>
+        `<option value="${p.id}" ${p.id === part ? 'selected' : ''}>${p.label}</option>`
+      ).join('');
+      const lastLog = name ? getLastExerciseLog(name) : null;
+      const hintBtn = document.getElementById('trainLastHint');
+      if (lastLog && !editingTrainSessionId) {
+        hintBtn.classList.remove('hidden');
+        hintBtn.textContent = `上次：${formatTrainWeight(lastLog.weight, lastLog.weightMode)} · ${lastLog.sets}×${lastLog.reps}（點擊帶入）`;
+        hintBtn.dataset.lastWeight = lastLog.weight !== undefined ? String(lastLog.weight) : '';
+        hintBtn.dataset.lastSets = String(lastLog.sets || '');
+        hintBtn.dataset.lastReps = String(lastLog.reps || '');
+        hintBtn.dataset.lastWeightMode = lastLog.weightMode || 'normal';
+        hintBtn.dataset.lastSetType = lastLog.setType || 'working';
+      } else {
+        hintBtn.classList.add('hidden');
+      }
+      syncWeightModeButtons();
+      syncSetTypeButtons();
+      openModal('modalTrain');
+      focusInputSoon('trainEditWeight');
     }
 
     function renderTraining() {
-      if (!db.training) db.training = { records: [] };
+      ensureTrainingSchema();
+      document.getElementById('trainDate').value = trainSelectedDate;
+      const suggested = getSuggestedPpl();
+      const sessions = [...(db.training.sessions || [])].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      let hint = `建議：${PPL_LABELS[suggested] || suggested}`;
+      if (sessions.length) {
+        hint += `（上次 ${PPL_LABELS[sessions[0].type] || sessions[0].type} · ${sessions[0].date}）`;
+      }
+      document.getElementById('trainSuggestHint').textContent = hint;
+      syncTrainUnitButtons();
+      syncPplButtons();
+      renderExerciseChips();
+      renderSessionLog();
       document.getElementById('trainMonthLabel').textContent = monthLabel(trainYear, trainMonth);
 
       const recoveryGrid = document.getElementById('recoveryGrid');
@@ -3775,20 +4087,9 @@
         </div>`;
       }).join('');
 
-      const partGrid = document.getElementById('trainPartGrid');
-      partGrid.innerHTML = TRAINING_PARTS.map(p => {
-        const st = getPartRecoveryStatus(p.id);
-        const active = pendingTrainPart === p.id;
-        return `
-        <button type="button" data-train-part="${p.id}" class="rounded-2xl p-3 text-center border-2 active:scale-95 transition-transform ${active ? 'border-ios-blue bg-blue-50' : 'border-transparent bg-ios-bg'} ${!st.ready ? 'opacity-80' : ''}">
-          <div class="w-9 h-9 rounded-full ${p.color} flex items-center justify-center text-sm font-bold mx-auto">${p.label}</div>
-        </button>`;
-      }).join('');
-
       const monthSets = getMonthSetsByPart();
       const maxSets = Math.max(1, ...Object.values(monthSets));
-      const chart = document.getElementById('trainMonthChart');
-      chart.innerHTML = TRAINING_PARTS.map(p => {
+      document.getElementById('trainMonthChart').innerHTML = TRAINING_PARTS.map(p => {
         const sets = monthSets[p.id] || 0;
         const pct = sets ? Math.round(sets / maxSets * 100) : 0;
         return `
@@ -3803,34 +4104,31 @@
         </div>`;
       }).join('');
 
-      const records = getMonthTrainingRecords();
+      const monthSessions = getMonthSessions();
       const list = document.getElementById('trainList');
       const empty = document.getElementById('trainEmpty');
-      if (!records.length) {
+      if (!monthSessions.length) {
         list.innerHTML = '';
         empty.classList.remove('hidden');
         return;
       }
       empty.classList.add('hidden');
-      list.innerHTML = records.map(r => {
-        const p = getPartDef(r.part);
+      list.innerHTML = monthSessions.map(s => {
+        const count = (s.exercises || []).length;
+        const workingSets = (s.exercises || []).filter(ex => ex.setType === 'working' && !ex.cardio)
+          .reduce((sum, ex) => sum + (ex.sets || 0), 0);
         return `
-        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full ${p.color} flex items-center justify-center text-sm font-bold">${p.label}</div>
+        <button type="button" data-open-session="${s.id}" class="w-full bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3 text-left active:scale-[0.99] transition-transform">
+          <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">${PPL_LABELS[s.type] ? PPL_LABELS[s.type].charAt(0) : '?'}</div>
           <div class="flex-1 min-w-0">
             <div class="flex justify-between items-center">
-              <span class="font-semibold text-sm">${r.sets} 組</span>
-              <span class="text-xs text-ios-gray">${r.date}</span>
+              <span class="font-semibold text-sm">${PPL_LABELS[s.type] || s.type}</span>
+              <span class="text-xs text-ios-gray">${s.date}</span>
             </div>
-            <p class="text-xs text-ios-gray mt-0.5">${r.time || ''} 紀錄</p>
+            <p class="text-xs text-ios-gray mt-0.5">${count} 動作 · ${workingSets} 工作組</p>
           </div>
-          <button data-edit-train="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-blue active:scale-95 transition-transform" aria-label="編輯">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-          </button>
-          <button data-delete-train="${r.id}" class="w-8 h-8 flex items-center justify-center rounded-full text-ios-gray active:scale-95 transition-transform" aria-label="刪除">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          </button>
-        </div>`;
+          <svg class="w-4 h-4 text-ios-gray shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>`;
       }).join('');
     }
 
@@ -4468,52 +4766,152 @@
         if (trainMonth > 11) { trainMonth = 0; trainYear++; }
         renderTraining();
       });
-      document.getElementById('trainPartGrid').addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-train-part]');
-        if (!btn) return;
-        pendingTrainPart = btn.dataset.trainPart;
-        const part = getPartDef(pendingTrainPart);
-        document.getElementById('trainSelectedPartLabel').textContent = part.label;
-        document.getElementById('trainSetsRow').classList.remove('hidden');
+      document.getElementById('trainDate').addEventListener('change', (e) => {
+        trainSelectedDate = e.target.value || todayStr();
         renderTraining();
       });
-      document.querySelectorAll('.train-set-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          if (!pendingTrainPart) { showToast('請先選擇部位', true); return; }
-          await quickAddTraining(pendingTrainPart, parseInt(btn.dataset.trainSets, 10));
+      document.getElementById('trainUnitToggle').addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-train-unit]');
+        if (!btn) return;
+        const unit = btn.dataset.trainUnit;
+        if (unit !== 'kg' && unit !== 'lb') return;
+        await mutateAndSync(() => {
+          ensureTrainingSchema();
+          db.training.unit = unit;
         });
+        showToast(unit === 'kg' ? '重量單位：kg' : '重量單位：lb');
       });
-      document.getElementById('trainList').addEventListener('click', async (e) => {
-        const editBtn = e.target.closest('[data-edit-train]');
-        const delBtn = e.target.closest('[data-delete-train]');
+      document.getElementById('trainPplGrid').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-train-ppl]');
+        if (!btn) return;
+        trainSessionType = btn.dataset.trainPpl;
+        renderTraining();
+      });
+      document.getElementById('trainTemplateChips').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-train-template]');
+        if (!btn) return;
+        const idx = parseInt(btn.dataset.trainTemplate, 10);
+        const templates = PPL_TEMPLATES[trainSessionType] || [];
+        const tpl = templates[idx];
+        if (!tpl) return;
+        pendingExerciseTemplate = tpl;
+        openTrainExerciseModal(tpl, false);
+      });
+      document.getElementById('trainFinisherChips').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-train-finisher]');
+        if (!btn) return;
+        const idx = parseInt(btn.dataset.trainFinisher, 10);
+        const fin = TRAIN_FINISHERS[idx];
+        if (!fin) return;
+        pendingExerciseTemplate = fin;
+        openTrainExerciseModal(fin, false);
+      });
+      document.getElementById('btnTrainCustomExercise').addEventListener('click', () => {
+        pendingExerciseTemplate = null;
+        openTrainExerciseModal({ name: '', part: 'chest' }, false);
+      });
+      document.getElementById('trainWeightModeRow').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-weight-mode]');
+        if (!btn) return;
+        trainWeightMode = btn.dataset.weightMode;
+        syncWeightModeButtons();
+      });
+      document.getElementById('trainSetTypeRow').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-set-type]');
+        if (!btn) return;
+        trainSetType = btn.dataset.setType;
+        syncSetTypeButtons();
+      });
+      document.getElementById('trainLastHint').addEventListener('click', () => {
+        const hint = document.getElementById('trainLastHint');
+        if (hint.classList.contains('hidden')) return;
+        document.getElementById('trainEditWeight').value = hint.dataset.lastWeight || '';
+        document.getElementById('trainEditSets').value = hint.dataset.lastSets || '';
+        document.getElementById('trainEditReps').value = hint.dataset.lastReps || '';
+        trainWeightMode = hint.dataset.lastWeightMode || 'normal';
+        trainSetType = hint.dataset.lastSetType || 'working';
+        syncWeightModeButtons();
+        syncSetTypeButtons();
+        focusInputSoon('trainEditWeight');
+      });
+      document.getElementById('trainSessionLog').addEventListener('click', async (e) => {
+        const editBtn = e.target.closest('[data-edit-exercise]');
+        const delBtn = e.target.closest('[data-delete-exercise]');
+        const session = getSessionForDate(trainSelectedDate, trainSessionType);
+        if (!session) return;
         if (editBtn) {
-          const rec = db.training.records.find(r => r.id === editBtn.dataset.editTrain);
-          if (rec) openTrainModal(rec);
+          const ex = session.exercises.find(x => x.id === editBtn.dataset.editExercise);
+          if (ex) openTrainExerciseModal(ex, true);
           return;
         }
         if (!delBtn) return;
-        const id = delBtn.dataset.deleteTrain;
-        if (!confirm('確定刪除此筆訓練紀錄？')) return;
+        const exId = delBtn.dataset.deleteExercise;
+        if (!confirm('確定刪除此動作？')) return;
         await mutateAndSync(() => {
-          db.training.records = db.training.records.filter(r => r.id !== id);
+          ensureTrainingSchema();
+          const s = getSessionForDate(trainSelectedDate, trainSessionType);
+          if (!s) return;
+          s.exercises = s.exercises.filter(x => x.id !== exId);
+          if (!s.exercises.length) {
+            db.training.sessions = db.training.sessions.filter(x => x.id !== s.id);
+          }
         });
         showToast('已刪除');
       });
+      document.getElementById('trainList').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-open-session]');
+        if (!btn) return;
+        ensureTrainingSchema();
+        const session = (db.training.sessions || []).find(s => s.id === btn.dataset.openSession);
+        if (!session) return;
+        trainSelectedDate = session.date;
+        trainSessionType = session.type;
+        renderTraining();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
 
       document.getElementById('btnSaveTrain').addEventListener('click', async () => {
-        const part = document.getElementById('trainEditPart').value;
+        const name = document.getElementById('trainEditName').value.trim();
+        const weightRaw = document.getElementById('trainEditWeight').value;
+        const weight = weightRaw === '' ? 0 : parseFloat(weightRaw);
         const sets = parseInt(document.getElementById('trainEditSets').value, 10);
-        const date = document.getElementById('trainEditDate').value;
-        const time = document.getElementById('trainEditTime').value;
-        if (!part || !sets || sets < 1) { showToast('請填寫有效組數', true); return; }
-        if (!date || !time) { showToast('請填寫日期與時間', true); return; }
+        const reps = parseInt(document.getElementById('trainEditReps').value, 10);
+        const part = document.getElementById('trainEditPart').value;
+        if (!name) { showToast('請填寫動作名稱', true); return; }
+        if (!sets || sets < 1) { showToast('請填寫有效組數', true); return; }
+        if (!reps || reps < 1) { showToast('請填寫有效次數', true); return; }
+        if (!modalTrainCardio && !part) { showToast('請選擇部位', true); return; }
+        if (trainSetType === 'working' && !modalTrainCardio && part) {
+          const st = getPartRecoveryStatus(part);
+          if (!st.ready) {
+            const pDef = getPartDef(part);
+            if (!confirm(`${pDef.label} 仍在恢復中（${st.sub}），確定要記錄工作組？`)) return;
+          }
+        }
         closeModal('modalTrain');
-        await mutateAndSync(() => {
-          const rec = db.training.records.find(r => r.id === editingTrainId);
-          if (rec) Object.assign(rec, { part, sets, date, time });
-          editingTrainId = null;
+        const ok = await mutateAndSync(() => {
+          ensureTrainingSchema();
+          const session = getOrCreateSession(trainSelectedDate, trainSessionType);
+          const payload = {
+            name,
+            part: modalTrainCardio ? '' : part,
+            weight: isNaN(weight) ? 0 : weight,
+            weightMode: trainWeightMode,
+            sets,
+            reps,
+            setType: trainSetType
+          };
+          if (modalTrainCardio) payload.cardio = true;
+          if (editingTrainSessionId) {
+            const ex = session.exercises.find(x => x.id === editingTrainSessionId);
+            if (ex) Object.assign(ex, payload);
+          } else {
+            session.exercises.push({ id: uid(), ...payload });
+          }
+          editingTrainSessionId = null;
+          pendingExerciseTemplate = null;
         });
-        showToast('訓練紀錄已更新');
+        showToast(ok ? '已儲存' : '已存本機，同步失敗', !ok);
       });
     }
 
@@ -4596,17 +4994,6 @@
       }
     }
 
-    function openTrainModal(record) {
-      editingTrainId = record.id;
-      document.getElementById('trainEditPart').innerHTML = TRAINING_PARTS.map(p =>
-        `<option value="${p.id}" ${p.id === record.part ? 'selected' : ''}>${p.label}</option>`
-      ).join('');
-      document.getElementById('trainEditSets').value = record.sets || '';
-      document.getElementById('trainEditDate').value = record.date || todayStr();
-      document.getElementById('trainEditTime').value = record.time || '18:00';
-      openModal('modalTrain');
-    }
-
     function openSubscriptionModal(sub) {
       editingSubscriptionId = sub ? sub.id : null;
       document.getElementById('subModalTitle').textContent = sub ? '編輯訂閱' : '新增訂閱';
@@ -4670,7 +5057,9 @@
       }
       purgeExpiredDietImages();
       ensureDietSchema();
-      if (maintainDietArchives()) saveLocalCache();
+      const trainSchemaChanged = ensureTrainingSchema();
+      trainSessionType = getSuggestedPpl();
+      if (maintainDietArchives() || trainSchemaChanged) saveLocalCache();
       renderAll();
       checkSubscriptionReminders();
       checkForAppUpdate();
